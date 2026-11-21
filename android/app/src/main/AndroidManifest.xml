@@ -36,6 +36,22 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+
+        <!-- Foreground Service (@capawesome-team/capacitor-android-foreground-service).
+             Служба и ресивер НЕ объявлены в манифесте самого плагина —
+             без этих строк фоновая служба не запустится. -->
+        <service
+            android:name="io.capawesome.capacitorjs.plugins.foregroundservice.AndroidForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Системные будильники смены АСУТП: постоянное уведомление с текущей операцией и обратным отсчётом" />
+        </service>
+
+        <receiver
+            android:name="io.capawesome.capacitorjs.plugins.foregroundservice.NotificationActionBroadcastReceiver"
+            android:exported="false" />
     </application>
 
     <!-- Permissions -->

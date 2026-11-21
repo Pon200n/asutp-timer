@@ -120,6 +120,27 @@ App.Settings = {
       if (row) this.deleteBreak(row.dataset.breakId);
       return;
     }
+    if (t.id === 'btnExactAlarms') {
+      this.checkExactAlarms();
+      return;
+    }
+  },
+
+  // Точные будильники — на Android 12+ это отдельное разрешение.
+  // Без него система будит телефон «когда-нибудь», а не в нужную секунду.
+  checkExactAlarms: function () {
+    if (!App.Native || !App.Native.available) {
+      App.Toast.show('Доступно только в нативном приложении');
+      return;
+    }
+    App.Native.checkExactAlarms().then(function (state) {
+      if (state === 'granted') {
+        App.Toast.show('Точные будильники разрешены');
+      } else {
+        App.Toast.show('Открываю настройки точных будильников');
+        App.Native.openExactAlarmSettings();
+      }
+    });
   },
 
   handleChange: function (e) {

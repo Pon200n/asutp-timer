@@ -44,6 +44,7 @@ App.Native = {
     this.registerActionType();
     this.listen();
     this.requestPermission();
+    this.checkExactAlarms();
   },
 
   // ---------- КАНАЛ УВЕДОМЛЕНИЙ ----------
@@ -93,12 +94,35 @@ App.Native = {
       if (App.Native.permission !== 'granted') {
         console.warn('[Native] уведомления запрещены — системных будильников не будет');
         if (App.UI) App.UI.setHudStatus('НЕТ РАЗРЕШЕНИЯ НА УВЕДОМЛЕНИЯ', 'var(--red)');
+        if (App.Toast) App.Toast.show('Нет разрешения на уведомления — будильники не сработают');
       } else if (App.Shift) {
         // Разрешение могло быть выдано только что — пересобираем будильники
         App.Shift.rescheduleAlerts();
       }
       return res;
     }).catch(function () {});
+  },
+
+  // ---------- ТОЧНЫЕ БУДИЛЬНИКИ (Android 12+) ----------
+  // На Android 12+ точные будильники — отдельное разрешение, его выдаёт
+  // пользователь в настройках. Без него система сработает «когда-нибудь».
+  checkExactAlarms: function () {
+    if (!this.ln || !this.ln.checkExactNotificationSetting) return Promise.resolve(null);
+    return this.ln.checkExactNotificationSetting().then(function (res) {
+      const state = (res && res.exact_alarm) || 'unknown';
+      App.Native.exactAlarm = state;
+      if (state !== 'granted') {
+        console.warn('[Native] точные будильники не разрешены (' + state + ')');
+        if (App.Toast) App.Toast.show('Разрешите точные будильники в настройках Android');
+      }
+      return state;
+    }).catch(function () {});
+  },
+
+  // Открыть системные настройки разрешения на точные будильники
+  openExactAlarmSettings: function () {
+    if (!this.ln || !this.ln.changeExactNotificationSetting) return Promise.resolve();
+    return this.ln.changeExactNotificationSetting().catch(function () {});
   },
 
   // ---------- ПЛАНИРОВАНИЕ БУДИЛЬНИКОВ ----------
