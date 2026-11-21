@@ -27,6 +27,11 @@ App.Native = {
   SOUND: 'asutp_alarm',
 
   init: function () {
+    // Каждый шаг изолирован: сбой плагина не должен ронять интерфейс.
+    const step = function (name, fn) {
+      try { fn(); } catch (e) { console.error('[Native] ' + name + ' failed:', e); }
+    };
+
     this.cap = window.Capacitor || null;
     if (!this.cap || !this.cap.isNativePlatform || !this.cap.isNativePlatform()) return;
 
@@ -40,11 +45,11 @@ App.Native = {
     }
     this.available = true;
 
-    this.createAlarmChannel();
-    this.registerActionType();
-    this.listen();
-    this.requestPermission();
-    this.checkExactAlarms();
+    step('createChannel', function () { App.Native.createAlarmChannel(); });
+    step('registerActionType', function () { App.Native.registerActionType(); });
+    step('listen', function () { App.Native.listen(); });
+    step('requestPermission', function () { App.Native.requestPermission(); });
+    step('checkExactAlarms', function () { App.Native.checkExactAlarms(); });
   },
 
   // ---------- КАНАЛ УВЕДОМЛЕНИЙ ----------

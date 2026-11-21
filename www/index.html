@@ -287,8 +287,6 @@
 
     if (window.App && App.State) {
       App.State.load();
-      // Нативный слой: канал уведомлений, кнопка «ПРИНЯТО», системные будильники
-      if (App.Native) App.Native.init();
       if (App.Templates) App.Templates.init();
       if (App.Alerts) App.Alerts.init();
       if (App.Settings) App.Settings.init();
@@ -335,6 +333,11 @@
         App.UI.setShiftControls(false);
         App.UI.setStartInputsLocked(false);
         if (App.Locks) App.Locks.enable('startCard');
+      }
+      // Нативный слой инициализируем ПОСЛЕДНИМ: интерфейс должен подняться
+      // всегда, даже если плагин упадёт или прав на уведомления нет.
+      if (App.Native) {
+        try { App.Native.init(); } catch (e) { console.error('[Native] init failed:', e); }
       }
     }
   </script>
