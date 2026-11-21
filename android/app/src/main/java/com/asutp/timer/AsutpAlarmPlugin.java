@@ -133,10 +133,13 @@ public class AsutpAlarmPlugin extends Plugin {
                 scheduled++;
             }
 
-            // Будильники, которых больше нет в расписании, снимаем
-            for (int i = 0; i < prev.length(); i++) {
-                String key = prev.optString(i);
-                if (key.isEmpty()) continue;
+            // Будильники, которых больше нет в расписании, снимаем.
+            // prev — JSONObject, поэтому перебираем его КЛЮЧИ, а не индексы:
+            // в org.json нет перегрузки optString(int).
+            java.util.Iterator<String> keys = prev.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                if (key == null || key.isEmpty()) continue;
                 if (ids.indexOf(key) >= 0) continue;
                 int oldId;
                 try {
