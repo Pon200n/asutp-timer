@@ -1,6 +1,6 @@
 ### Файл
--rw-r--r-- 1 runner runner 4597353 Nov 21 19:48 android/app/build/outputs/apk/debug/app-debug.apk
-sha256: 59f89d5cebb6f6dd61a3b921a25ac373b126df039b24c3b639e0257dd9329886
+-rw-r--r-- 1 runner runner 4597353 Nov 21 19:49 android/app/build/outputs/apk/debug/app-debug.apk
+sha256: 348d0390230287c1be23756842c235fc1a7c2204474c378bc6314375a92ffa93
 байт:   4597353
 
 ### Целостность архива
@@ -10,9 +10,9 @@ No errors detected in compressed data of android/app/build/outputs/apk/debug/app
 
 ### Подпись
 V2 Signer: certificate DN: C=US, O=Android, CN=Android Debug
-V2 Signer: certificate SHA-256 digest: 58ebf11651299acc7ab249b0d49e868ee3914ed2030c02f80a5ae8f7a2198c8d
-V2 Signer: certificate SHA-1 digest: 80b0362596400d973190f28120ac62fc868f52aa
-V2 Signer: certificate MD5 digest: c9e975dce7e724309ddc62f9ed9c3e53
+V2 Signer: certificate SHA-256 digest: 5b317bce84006b21c0ae9a815cee34a9c42ecb054026af3d95b31980e3e8aa99
+V2 Signer: certificate SHA-1 digest: 3803f34636f122011756e4392a624227eb5829d3
+V2 Signer: certificate MD5 digest: 9d67f02a8532f6ca385ba03ad8106b61
 
 ### badging (пакет, версии, разрешения)
 package: name='com.asutp.timer' versionCode='1' versionName='1.0' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
@@ -78,8 +78,15 @@ application-label-fi:'ASUTP Timer'
     48554  1981-01-01 01:01   res/raw/asutp_alarm.wav
    308744  1981-01-01 01:01   res/raw/asutp_alarm_loop.wav
 
+### Где лежит debug.keystore (нужно для кэша ключей)
+total 12
+drwxr-xr-x  2 runner runner 4096 Nov 21 19:48 .
+drwxr-x--- 16 runner runner 4096 Nov 21 19:49 ..
+-rw-r--r--  1 runner runner  127 Nov 21 19:48 analytics.settings
+/home/runner/.config/.android/debug.keystore
+
 ### Итоговый (merged) AndroidManifest.xml
-# android/app/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml
+# android/app/build/intermediates/merged_manifest/debug/processDebugMainManifest/AndroidManifest.xml
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.asutp.timer"
