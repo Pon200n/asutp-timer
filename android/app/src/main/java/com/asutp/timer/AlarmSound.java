@@ -25,6 +25,7 @@ public class AlarmSound {
 
     /** Запустить бесконечный цикл зуммера и вибрации (до подтверждения). */
     public static synchronized void start(Context ctx) {
+        if (player != null) return;   // уже играет — не перезапускаем
         stop(ctx);
         try {
             AudioAttributes attrs = new AudioAttributes.Builder()

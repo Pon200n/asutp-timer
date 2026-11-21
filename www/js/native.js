@@ -183,6 +183,7 @@ App.Native = {
           text: a.text,
           kind: a.kind,
           mode: a.mode,
+          voice: a.voice,
           eventIdx: (a.eventIdx === undefined ? -1 : a.eventIdx)
         });
       }

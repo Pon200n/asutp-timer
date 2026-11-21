@@ -142,6 +142,9 @@ App.Alerts = {
         atMs: ev.endMs,
         title: title,
         text: text,
+        // Фраза для озвучки (стиль Edgerunners / деловой) — её произносит
+        // нативная часть, чтобы голос был слышен в беззвучном режиме
+        voice: App.Alerts.buildPhrase(text, kind),
         kind: kind,
         mode: mode,
         eventIdx: idx,
@@ -266,7 +269,9 @@ App.Alerts = {
       text: text,
       kind: extra.kind || data.kind,
       mode: extra.mode || data.mode,
-      eventIdx: (extra.eventIdx !== undefined ? extra.eventIdx : data.eventIdx)
+      eventIdx: (extra.eventIdx !== undefined ? extra.eventIdx : data.eventIdx),
+      // Голос и зуммер в этом случае уже произвела нативная часть
+      spokenNatively: true
     });
   },
 
@@ -320,17 +325,19 @@ App.Alerts = {
     }
     ov.style.display = 'flex';
 
-    // Голос — однократно
-    this.speak(this.buildPhrase(a.text, a.kind));
-
-    // Зуммер + вибрация — в цикле до подтверждения
-    this.playBeep();
-    this.vibrate();
-    if (this.alarmLoopTimer) clearInterval(this.alarmLoopTimer);
-    this.alarmLoopTimer = setInterval(() => {
+    // Голос и зуммер: в нативном режиме их уже произвела нативная часть
+    // (голос с USAGE_ALARM + зуммер после окончания фразы — по ТЗ п.5.3).
+    // Здесь звук нужен только для резервного пути (LocalNotifications).
+    if (!a.spokenNatively) {
+      this.speak(this.buildPhrase(a.text, a.kind));
       this.playBeep();
       this.vibrate();
-    }, 3500);
+      if (this.alarmLoopTimer) clearInterval(this.alarmLoopTimer);
+      this.alarmLoopTimer = setInterval(() => {
+        this.playBeep();
+        this.vibrate();
+      }, 3500);
+    }
   },
 
   acknowledge: function () {

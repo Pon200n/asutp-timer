@@ -77,7 +77,34 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
             Log.e(TAG, "не удалось показать уведомление: " + e.getMessage());
         }
 
-        AlarmSound.start(ctx);
+        // ТЗ п.5.3: сначала однократно озвучивается текст события,
+        // затем в бесконечном цикле идёт резкий зуммер.
+        // Если бы одновременно — громкий зуммер заглушал бы голос.
+        final Context fctx = ctx;
+        String voice = "";
+        try {
+            JSONObject o = new JSONObject(payload);
+            voice = o.optString("voice", o.optString("text", ""));
+        } catch (JSONException e) {
+            voice = "";
+        }
+
+        AsutpVoice.speak(ctx, voice, 1.35f, 1.03f, new AsutpVoice.OnSpeechFinished() {
+            @Override
+            public void onFinished() {
+                AlarmSound.start(fctx);
+            }
+        });
+
+        // Страховка: если движок речи не отработал — зуммер включим всё равно
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        AlarmSound.start(fctx);
+                    }
+                }, 7000);
+
         AsutpAlarmPlugin.emit("alarmFired", payload);
     }
 

@@ -211,7 +211,7 @@ public class AsutpAlarmPlugin extends Plugin {
         }
         Float pitch = call.getFloat("pitch", 1.35f);
         Float rate = call.getFloat("rate", 1.03f);
-        AsutpVoice.speak(getContext(), text, pitch, rate);
+        AsutpVoice.speak(getContext(), text, pitch, rate, null);
         call.resolve();
     }
 
