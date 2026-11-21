@@ -1,1 +1,3 @@
-ОШИБКА: нет APK: android/app/build/outputs/apk/debug/app-debug.apk
+APK: android/app/build/outputs/apk/debug/app-debug.apk (4604779 Б)
+релиз id=453925728 tag=latest ассетов=0
+ОШИБКА: ошибка загрузки ассета: {"message":"Not Found","documentation_url":"https://docs.github.com/rest","status":"404"}
