@@ -83,6 +83,10 @@ jobs:
             echo "### Веб-ресурсы и звуки внутри APK"
             unzip -l "$APK" | grep -E "assets/public/(index|js/|vendor/)|res/raw" | head -40
             echo
+            echo "### Где лежит debug.keystore (нужно для кэша ключей)"
+            ls -la "$HOME/.android/" 2>&1 | head -5
+            find "$HOME" -name "debug.keystore" 2>/dev/null | head -5
+            echo
             echo "### Итоговый (merged) AndroidManifest.xml"
             MF=$(find android/app/build -name AndroidManifest.xml -path "*merged*" | head -1)
             if [ -n "$MF" ]; then
