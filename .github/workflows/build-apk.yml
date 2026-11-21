@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -45,10 +47,65 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
+      # Свойства собранного APK: подпись, манифест, целостность архива.
+      # Отчёт уходит в лог сборки и в ветку build-info (её можно читать без авторизации).
+      - name: APK diagnostics
+        run: |
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          mkdir -p apk-info
+          {
+            echo "### Файл"
+            ls -la "$APK"
+            echo
+            echo "### Целостность архива"
+            unzip -t "$APK" | tail -3
+            echo
+            echo "### Подпись"
+            APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner 2>/dev/null | tail -1)
+            if [ -n "$APKSIGNER" ]; then
+              "$APKSIGNER" verify --print-certs "$APK" 2>&1 | head -20
+            else
+              echo "apksigner не найден"
+            fi
+            echo
+            echo "### badging (пакет, версии, разрешения)"
+            AAPT=$(ls -d "$ANDROID_HOME"/build-tools/*/aapt 2>/dev/null | tail -1)
+            if [ -n "$AAPT" ]; then
+              "$AAPT" dump badging "$APK" 2>&1 | head -40
+            else
+              echo "aapt не найден"
+            fi
+            echo
+            echo "### Веб-ресурсы и звуки внутри APK"
+            unzip -l "$APK" | grep -E "assets/public/(index|js/|vendor/)|res/raw" | head -40
+            echo
+            echo "### Итоговый (merged) AndroidManifest.xml"
+            MF=$(find android/app/build -name AndroidManifest.xml -path "*merged*" | head -1)
+            if [ -n "$MF" ]; then
+              echo "# $MF"
+              cat "$MF"
+            else
+              echo "merged manifest не найден"
+            fi
+          } > apk-info/apk-diagnostics.txt 2>&1
+          cat apk-info/apk-diagnostics.txt
+
+      - name: Publish diagnostics to build-info branch
+        continue-on-error: true
+        run: |
+          git config user.name "ci"
+          git config user.email "ci@users.noreply.github.com"
+          git checkout -B build-info
+          git add -f apk-info/apk-diagnostics.txt
+          git commit -m "APK diagnostics" || true
+          git push --force origin build-info
+
+      # Артефакт отдаём обычным ZIP-архивом (как в сборках #4/#5, которые
+      # успешно ставились): внутри — app-debug.apk. Без архива файл приходит
+      # с расширением .zip, и установщик не может его распарсить.
       - name: Upload APK
         uses: actions/upload-artifact@v7
         with:
-          name: asutp-timer-debug.apk
+          name: asutp-timer-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          archive: false
-
+          archive: true
