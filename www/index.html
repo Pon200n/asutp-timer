@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CYBER АСУТП // v9</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div class="app-header">
+    <div class="hud-bar" id="hudBar">
+      <div class="hud-top">
+        <span class="hud-status" id="hudStatus">● ОЖИДАНИЕ ЗАПУСКА</span>
+        <span class="hud-clock" id="hudClock">00:00:00</span>
+      </div>
+      <div class="hud-main">
+        <div class="hud-op" id="hudOp">Соберите цепочку и нажмите Старт</div>
+        <div class="hud-timer" id="hudTimer">--:--</div>
+      </div>
+      <div class="hud-progress-wrap">
+        <div class="hud-progress-bar" id="hudProgress"></div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-tab="shift">СМЕНА</button>
+      <button class="tab" data-tab="settings">НАСТРОЙКИ</button>
+    </div>
+  </div>
+
+  <div class="tab-content active" id="tab-shift">
+    <div class="card" id="startCard">
+      <div class="sec-header">
+        <div class="sec-title" style="margin:0;">02 // Старт и сборка смены</div>
+        <div class="lock-swipe" id="startLockSwipe">
+          <div class="lock-swipe-fill" id="startLockFill"></div>
+          <div class="lock-swipe-thumb" id="startLockThumb">»</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;" class="row">
+        <input type="date" id="startDate">
+        <input type="time" id="startTime">
+        <details class="now-details">
+          <summary title="Быстрые действия">СЕЙЧАС</summary>
+          <div class="details-body">
+            <div class="details-inner">
+              <button class="btn-small" id="btnStartNow" style="width:100%;">Поставить текущее время</button>
+            </div>
+          </div>
+        </details>
+      </div>
+      <button class="btn-save-lock" id="startSaveBtn" style="display:none;">✓ СОХРАНИТЬ И ЗАКРЫТЬ</button>
+    </div>
+
+    <div class="card" id="chainCard">
+      <div class="sec-title">03 // Активная цепочка</div>
+      <details class="add-blocks-details" id="addBlocksDetails" style="margin-bottom:10px;">
+        <summary><span id="addBlocksSummary">+ Добавить блок в смену</span></summary>
+        <div class="details-body">
+          <div class="details-inner">
+            <div class="row" id="addBlockRow" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </details>
+      <div id="chainList" style="color:var(--muted); font-size:13px;">Добавьте блок выше...</div>
+      <div class="swipe-box" id="unlockSwipe">
+        <div class="swipe-fill" id="unlockFill"></div>
+        <div class="swipe-text" id="unlockText">Свайп вправо: разблокировать удаление ➔</div>
+        <div class="swipe-thumb" id="unlockThumb">»</div>
+      </div>
+    </div>
+
+    <div class="card red-accent">
+      <div class="sec-title">04 // Управление процессом</div>
+      <div id="startWrap">
+        <button class="btn-green" id="btnStartShift">▶ ЗАПУСТИТЬ СМЕНУ</button>
+      </div>
+      <div id="stopWrap" style="display:none;">
+        <div style="font-size:12px; color:var(--red); margin-bottom:4px; font-weight:bold;" id="stopHint">
+          Для остановки смены: 2 свайпа подряд
+        </div>
+        <div class="swipe-box danger-border" id="stopSwipe1">
+          <div class="swipe-fill" id="stopFill1"></div>
+          <div class="swipe-text" id="stopText1">СВАЙП 1 / 2 — ОСТАНОВКА СМЕНЫ ➔</div>
+          <div class="swipe-thumb" id="stopThumb1">1</div>
+          <div class="swipe-progress"><div class="swipe-progress-fill" id="stopProgress1"></div></div>
+        </div>
+        <div class="swipe-box danger-border" id="stopSwipe2" style="display:none;">
+          <div class="swipe-fill" id="stopFill2"></div>
+          <div class="swipe-text" id="stopText2">СВАЙП 2 / 2 — ПОДТВЕРДИТЬ СТОП ➔</div>
+          <div class="swipe-thumb" id="stopThumb2">2</div>
+          <div class="swipe-progress"><div class="swipe-progress-fill" id="stopProgress2"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-title">05 // Расписание</div>
+      <div style="font-size:11px; color:var(--muted); margin-bottom:8px;" id="breaksSummary"></div>
+      <div id="scheduleView" style="color:var(--muted); font-size:13px;">График пуст</div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-settings">
+    <div class="card yellow-accent">
+      <div class="sec-title">01 // Голосовой модуль и проверка</div>
+      <div class="row" style="margin-bottom:8px;">
+        <select id="voiceStyle">
+          <option value="edgerunners">Стиль: Edgerunners</option>
+          <option value="simple">Стиль: Деловой</option>
+        </select>
+      </div>
+      <div class="row">
+        <button class="btn-small" id="btnTestVoice">🔊 Тест голоса</button>
+        <button class="btn-small btn-yellow" id="btnTestAlarm">⚡ Тест тревоги</button>
+      </div>
+    </div>
+
+    <div class="card" id="settingsCard">
+      <div class="sec-header">
+        <div class="sec-title" style="margin:0;">07 // Настройки приложения</div>
+        <div class="lock-swipe" id="setLockSwipe">
+          <div class="lock-swipe-fill" id="setLockFill"></div>
+          <div class="lock-swipe-thumb" id="setLockThumb">»</div>
+        </div>
+      </div>
+      <div class="setting-row" style="margin-top:10px;">
+        <label for="setStartTimeDefault">Время старта по умолчанию</label>
+        <input type="time" id="setStartTimeDefault">
+      </div>
+      <div class="setting-row">
+        <label for="setEarlyAlert">Раннее оповещение</label>
+        <select id="setEarlyAlert">
+          <option value="0">Выкл</option>
+          <option value="0.5">за 30 сек</option>
+          <option value="1">за 1 мин</option>
+          <option value="2">за 2 мин</option>
+          <option value="5">за 5 мин</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label for="setRounding">Округление сигналов</label>
+        <select id="setRounding">
+          <option value="off">Выкл (точно до секунды)</option>
+          <option value="up">К ближайшей минуте (вверх)</option>
+          <option value="down">В меньшую сторону</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label for="setVoiceMode">Режим оповещений</label>
+        <select id="setVoiceMode">
+          <option value="full">Голос + Сигнал + Вибрация</option>
+          <option value="signal">Только Сигнал + Вибрация</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label for="setClickSound">Звук нажатий кнопок</label>
+        <select id="setClickSound">
+          <option value="both">Звук + Вибрация</option>
+          <option value="sound">Только звук</option>
+          <option value="vibrate">Только вибрация</option>
+          <option value="off">Выкл</option>
+        </select>
+      </div>
+      <button class="btn-save-lock" id="setSaveBtn" style="display:none;">✓ СОХРАНИТЬ И ЗАКРЫТЬ</button>
+    </div>
+
+    <div class="card" id="breaksCard">
+      <div class="sec-header">
+        <div class="sec-title" style="margin:0;">08 // Перерывы</div>
+        <div class="lock-swipe" id="brkLockSwipe">
+          <div class="lock-swipe-fill" id="brkLockFill"></div>
+          <div class="lock-swipe-thumb" id="brkLockThumb">»</div>
+        </div>
+      </div>
+      <details class="breaks-details" style="margin-top:10px;">
+        <summary><span id="breaksDetailsSummary">СПИСОК ПЕРЕРЫВОВ</span></summary>
+        <div class="details-body">
+          <div class="details-inner">
+            <div id="breaksEditor" style="margin-top:12px;"></div>
+            <button class="btn-small btn-yellow" id="btnAddBreak" style="width:100%; margin-top:10px;">+ Добавить перерыв</button>
+          </div>
+        </div>
+      </details>
+      <button class="btn-save-lock" id="brkSaveBtn" style="display:none;">✓ СОХРАНИТЬ И ЗАКРЫТЬ</button>
+    </div>
+
+    <div class="card" id="templatesCard">
+      <div class="sec-header">
+        <div class="sec-title" style="margin:0;">06 // Редактор шаблонов</div>
+        <div class="lock-swipe" id="tplLockSwipe">
+          <div class="lock-swipe-fill" id="tplLockFill"></div>
+          <div class="lock-swipe-thumb" id="tplLockThumb">»</div>
+        </div>
+      </div>
+      <details class="templates-details" style="margin-top:10px;">
+        <summary><span id="templatesDetailsSummary">СПИСОК ШАБЛОНОВ</span></summary>
+        <div class="details-body">
+          <div class="details-inner">
+            <div id="templatesList" style="margin-top:12px;"></div>
+          </div>
+        </div>
+      </details>
+      <button class="btn-save-lock" id="tplSaveBtn" style="display:none;">✓ СОХРАНИТЬ И ЗАКРЫТЬ</button>
+    </div>
+  </div>
+
+  <div id="alarmOverlay">
+    <div class="alarm-badge" id="alarmBadge">ВНИМАНИЕ // ОПЕРАЦИЯ</div>
+    <div class="alarm-title" id="alarmTitle">СААТ-4: Операция 1</div>
+    <div class="alarm-sub" id="alarmSub">Нажмите кнопку для подтверждения</div>
+    <button class="ack-btn" id="btnAckAlarm">✔ ПРИНЯТО / ДАЛЕЕ</button>
+  </div>
+
+  <div id="toast" class="toast">
+    <span id="toastText">Удалено</span>
+    <button id="btnToastUndo" class="toast-undo">ОТМЕНИТЬ</button>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/scheduler.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/locks.js"></script>
+  <script src="js/swipe.js"></script>
+  <script src="js/templates.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/shift.js"></script>
+  <script src="js/alerts.js"></script>
+  <script src="js/settings.js"></script>
+
+  <script>
+    (function setupDetailsAnimation() {
+      var OPEN_MS = 220, CLOSE_MS = 170;
+      var EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
+      document.querySelectorAll('details').forEach(function (det) {
+        var summary = det.querySelector('summary');
+        var body = det.querySelector('.details-body');
+        if (!summary || !body) return;
+        summary.addEventListener('click', function (e) {
+          e.preventDefault();
+          if (det.dataset.animating === '1') return;
+          det.dataset.animating = '1';
+          if (det.open) {
+            body.style.transition = 'grid-template-rows ' + CLOSE_MS + 'ms ' + EASE;
+            body.style.gridTemplateRows = '0fr';
+            setTimeout(function () {
+              det.open = false;
+              body.style.transition = '';
+              body.style.gridTemplateRows = '';
+              det.dataset.animating = '0';
+            }, CLOSE_MS);
+          } else {
+            body.style.gridTemplateRows = '0fr';
+            det.open = true;
+            void body.offsetHeight;
+            body.style.transition = 'grid-template-rows ' + OPEN_MS + 'ms ' + EASE;
+            body.style.gridTemplateRows = '1fr';
+            setTimeout(function () {
+              body.style.transition = '';
+              body.style.gridTemplateRows = '';
+              det.dataset.animating = '0';
+            }, OPEN_MS);
+          }
+        });
+      });
+    })();
+
+    function toggleDetailsIn(cardId, sel, open) {
+      var det = document.querySelector('#' + cardId + ' ' + sel);
+      if (!det) return;
+      if (open && !det.open) { var s = det.querySelector('summary'); if (s) s.click(); }
+      else if (!open && det.open) { var s2 = det.querySelector('summary'); if (s2) s2.click(); }
+    }
+
+    if (window.App && App.State) {
+      App.State.load();
+      if (App.Templates) App.Templates.init();
+      if (App.Alerts) App.Alerts.init();
+      if (App.Settings) App.Settings.init();
+      if (App.Swipe) App.Swipe.init();
+      if (App.Shift) {
+        App.Shift.initStartInputs();
+        App.Shift.rebuild();
+        App.Shift.startTicker();
+      }
+      if (App.Locks) {
+        App.Locks.attach('startCard', 'startLockSwipe', 'startLockThumb', 'startLockFill', 'startSaveBtn');
+        App.Locks.attach('settingsCard', 'setLockSwipe', 'setLockThumb', 'setLockFill', 'setSaveBtn');
+        App.Locks.attach('breaksCard', 'brkLockSwipe', 'brkLockThumb', 'brkLockFill', 'brkSaveBtn', {
+          onUnlock: function () { toggleDetailsIn('breaksCard', '.breaks-details', true); },
+          onLock: function () { toggleDetailsIn('breaksCard', '.breaks-details', false); }
+        });
+        App.Locks.attach('templatesCard', 'tplLockSwipe', 'tplLockThumb', 'tplLockFill', 'tplSaveBtn', {
+          onUnlock: function () { toggleDetailsIn('templatesCard', '.templates-details', true); },
+          onLock: function () { toggleDetailsIn('templatesCard', '.templates-details', false); }
+        });
+        App.Locks.lock('startCard');
+        App.Locks.lock('settingsCard');
+        App.Locks.lock('breaksCard');
+        App.Locks.lock('templatesCard');
+      }
+      document.addEventListener('click', function (e) {
+        if (App.UI) App.UI.handleClick(e);
+        if (App.Templates) App.Templates.handleClick(e);
+        if (App.Shift) App.Shift.handleClick(e);
+        if (App.Alerts) App.Alerts.handleClick(e);
+        if (App.Settings) App.Settings.handleClick(e);
+        if (App.Toast) App.Toast.handleClick(e);
+      });
+      document.addEventListener('change', function (e) {
+        if (App.Templates) App.Templates.handleChange(e);
+        if (App.Shift) App.Shift.handleChange(e);
+        if (App.Settings) App.Settings.handleChange(e);
+      });
+      if (App.State.isRunning && App.State.shiftStartMs) {
+        App.UI.setShiftControls(true);
+        App.UI.setStartInputsLocked(true);
+        if (App.Locks) App.Locks.disable('startCard');
+      } else {
+        App.UI.setShiftControls(false);
+        App.UI.setStartInputsLocked(false);
+        if (App.Locks) App.Locks.enable('startCard');
+      }
+    }
+  </script>
+</body>
+</html>

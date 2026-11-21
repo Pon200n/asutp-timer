@@ -1,0 +1,185 @@
+window.App = window.App || {};
+
+App.Shift = {
+
+  events: [],
+  tickTimer: null,
+
+  getSelectedStartMs: function () {
+    const dVal = document.getElementById('startDate').value;
+    const tVal = document.getElementById('startTime').value;
+    if (!dVal || !tVal) return null;
+    const [y, mo, da] = dVal.split('-').map(Number);
+    const [h, m] = tVal.split(':').map(Number);
+    return new Date(y, mo - 1, da, h, m, 0, 0).getTime();
+  },
+
+  initStartInputs: function () {
+    const dateEl = document.getElementById('startDate');
+    const timeEl = document.getElementById('startTime');
+    if (!dateEl || !timeEl) return;
+    if (App.State.isRunning && App.State.shiftStartMs) {
+      const d = new Date(App.State.shiftStartMs);
+      dateEl.value = App.Utils.toLocalDateStr(d);
+      timeEl.value = App.Utils.toLocalTimeStr(d);
+    } else {
+      if (!dateEl.value) dateEl.value = App.Utils.toLocalDateStr(new Date());
+      if (!timeEl.value) timeEl.value = App.State.settings.startTimeDefault || '07:45';
+    }
+  },
+
+  rebuild: function () {
+    const startMs = App.State.isRunning && App.State.shiftStartMs
+      ? App.State.shiftStartMs
+      : this.getSelectedStartMs();
+    if (!startMs || !App.State.chain.length) {
+      this.events = [];
+      App.UI.renderSchedule([], startMs);
+      App.UI.renderChain(App.State.chain, [], Date.now());
+      return;
+    }
+    this.events = App.Scheduler.calculate(App.State.chain, startMs, Date.now());
+    App.UI.renderSchedule(this.events, startMs);
+    App.UI.renderChain(App.State.chain, this.events, Date.now());
+  },
+
+  start: function () {
+    if (App.State.isRunning) return;
+    if (!App.State.chain.length) { alert('Сначала добавьте хотя бы один блок в цепочку!'); return; }
+    const startMs = this.getSelectedStartMs();
+    if (!startMs) { alert('Укажите корректную дату и время старта!'); return; }
+
+    App.State.setRunning(true, startMs);
+    if (startMs <= Date.now() - 60000) App.State.markStartNotified();
+    this.rebuild();
+    App.UI.setShiftControls(true);
+    App.UI.setStartInputsLocked(true);
+    if (App.Locks) App.Locks.disable('startCard');
+    if (App.Alerts) App.Alerts.initAudio();
+
+    if (startMs > Date.now()) {
+      App.UI.setHudStatus('ОЖИДАНИЕ СТАРТА', 'var(--yellow)');
+      if (App.Alerts) App.Alerts.speak('Смена запланирована. Ожидание времени старта.');
+    } else {
+      App.UI.setHudStatus('СМЕНА АКТИВНА', 'var(--green)');
+      if (App.Alerts) App.Alerts.speak('Смена запущена. Таймер активен.');
+    }
+  },
+
+  stop: function () {
+    App.State.setRunning(false, null);
+    this.events = [];
+    App.UI.setShiftControls(false);
+    App.UI.setStartInputsLocked(false);
+    if (App.Locks) App.Locks.enable('startCard');
+    App.UI.setHudStatus('ОСТАНОВЛЕНО', 'var(--red)');
+    App.UI.setHudOp('Соберите цепочку и нажмите Старт');
+    App.UI.setHudTimer('--:--');
+    App.UI.setHudProgress(0);
+    App.UI.highlightScheduleRow(-1);
+    if (App.Swipe) App.Swipe.resetStopSwipes();
+    this.rebuild();
+  },
+
+  startTicker: function () {
+    if (this.tickTimer) clearInterval(this.tickTimer);
+    this.tickTimer = setInterval(() => this.tick(), 500);
+  },
+
+  tick: function () {
+    App.UI.tickClock();
+    if (!App.State.isRunning || !App.State.shiftStartMs) return;
+    const nowMs = Date.now();
+    const shiftStartMs = App.State.shiftStartMs;
+
+    if (nowMs < shiftStartMs) {
+      const waitSec = Math.ceil((shiftStartMs - nowMs) / 1000);
+      App.UI.setHudStatus('ОЖИДАНИЕ СТАРТА', 'var(--yellow)');
+      App.UI.setHudOp('Старт ' + App.Utils.fmtDateTimeFromMs(shiftStartMs, nowMs));
+      App.UI.setHudTimer(App.Utils.fmtCountdown(waitSec));
+      App.UI.setHudProgress(0);
+      return;
+    }
+
+    if (!App.State.shiftStartNotified) {
+      App.State.markStartNotified();
+      const elapsed = nowMs - shiftStartMs;
+      if (elapsed >= 0 && elapsed < 60000) {
+        const firstOp = this.events.find(e => e.type === 'op');
+        const label = firstOp ? firstOp.label : 'Смена';
+        if (App.Alerts) {
+          App.Alerts.enqueue({
+            title: 'СМЕНА // СТАРТ',
+            text: 'СМЕНА НАЧАЛАСЬ. НУЖНО НАЧАТЬ: ' + label,
+            kind: 'op_start', mode: 'op'
+          });
+        }
+      }
+    }
+
+    App.UI.setHudStatus('СМЕНА АКТИВНА', 'var(--green)');
+    if (!this.events.length) return;
+
+    const nextIdx = this.events.findIndex(e => !e.fired);
+    if (nextIdx === -1) {
+      App.UI.setHudOp('Все операции выполнены!');
+      App.UI.setHudTimer('ГОТОВО');
+      App.UI.setHudProgress(100);
+      App.UI.highlightScheduleRow(-1);
+      return;
+    }
+
+    const ev = this.events[nextIdx];
+    const diffSec = (ev.endMs - nowMs) / 1000;
+    App.UI.setHudOp(ev.label);
+    App.UI.setHudTimer(App.Utils.fmtCountdown(Math.ceil(diffSec)));
+    const totalSpanMs = Math.max(1000, ev.endMs - ev.startMs);
+    const passedMs = Math.max(0, Math.min(totalSpanMs, nowMs - ev.startMs));
+    App.UI.setHudProgress(Math.round((passedMs / totalSpanMs) * 100));
+    App.UI.highlightScheduleRow(nextIdx);
+    App.UI.renderChain(App.State.chain, this.events, nowMs);
+
+    if (diffSec <= 0) {
+      ev.fired = true;
+      App.UI.renderSchedule(this.events, shiftStartMs);
+      if (diffSec > -60 && App.Alerts) App.Alerts.fireAlarm(ev, nextIdx);
+    }
+  },
+
+  handleClick: function (e) {
+    const t = e.target;
+    if (!t) return;
+    if (t.id === 'btnStartShift') { this.start(); return; }
+    if (t.id === 'btnStartNow') {
+      if (App.State.isRunning) return;
+      const d = new Date();
+      document.getElementById('startDate').value = App.Utils.toLocalDateStr(d);
+      document.getElementById('startTime').value = App.Utils.toLocalTimeStr(d);
+      this.rebuild();
+      return;
+    }
+  },
+
+  handleChange: function (e) {
+    const t = e.target;
+    if (!t) return;
+    if (t.id === 'startDate' || t.id === 'startTime') {
+      if (App.State.isRunning) return;
+      this.rebuild();
+    }
+  },
+
+  resetAll: function () {
+    App.State.setRunning(false, null);
+    this.events = [];
+    App.UI.setShiftControls(false);
+    App.UI.setStartInputsLocked(false);
+    if (App.Locks) App.Locks.enable('startCard');
+    App.UI.setHudStatus('ОЖИДАНИЕ ЗАПУСКА', 'var(--cyan)');
+    App.UI.setHudOp('Соберите цепочку и нажмите Старт');
+    App.UI.setHudTimer('--:--');
+    App.UI.setHudProgress(0);
+    if (App.Swipe) App.Swipe.resetStopSwipes();
+    this.rebuild();
+  }
+};
