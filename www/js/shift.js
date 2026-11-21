@@ -143,7 +143,7 @@ App.Shift = {
         body = 'Все операции выполнены';
       }
     }
-    App.Native.updateLiveBar(title, body, endMs, progress, total);
+    App.Native.updateLiveBar(title, body, endMs, progress, 100);
   },
 
   // Текущая операция: первая ещё не отработавшая

@@ -93,8 +93,10 @@ public class AsutpLiveService extends Service {
                     .setChronometerCountDown(true);
         }
 
+        // progress приходит в процентах (0..100) — шкала полосы тоже в процентах,
+        // иначе полоса всегда пустая
         if (total > 0) {
-            b.setProgress(total, Math.max(0, Math.min(total, progress)), false);
+            b.setProgress(100, Math.max(0, Math.min(100, progress)), false);
         }
 
         return b.build();
