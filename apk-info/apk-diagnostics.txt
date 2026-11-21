@@ -37,13 +37,13 @@
 > Task :capacitor-local-notifications:mergeDebugConsumerProguardFiles
 > Task :capacitor-local-notifications:prepareDebugArtProfile
 > Task :capacitor-local-notifications:prepareLintJarForPublish
-> Task :capawesome-team-capacitor-android-foreground-service:checkDebugAarMetadata
-> Task :capawesome-team-capacitor-android-foreground-service:stripDebugDebugSymbols NO-SOURCE
 > Task :capacitor-local-notifications:mergeDebugJavaResource
-> Task :capawesome-team-capacitor-android-foreground-service:copyDebugJniLibsProjectAndLocalJars
+> Task :capawesome-team-capacitor-android-foreground-service:checkDebugAarMetadata
 > Task :capacitor-local-notifications:syncDebugLibJars
 > Task :capacitor-local-notifications:bundleDebugAar
 > Task :capacitor-local-notifications:assembleDebug
+> Task :capawesome-team-capacitor-android-foreground-service:stripDebugDebugSymbols NO-SOURCE
+> Task :capawesome-team-capacitor-android-foreground-service:copyDebugJniLibsProjectAndLocalJars
 > Task :capawesome-team-capacitor-android-foreground-service:extractDebugAnnotations
 > Task :capawesome-team-capacitor-android-foreground-service:extractDeepLinksForAarDebug
 > Task :capawesome-team-capacitor-android-foreground-service:mergeDebugGeneratedProguardFiles
@@ -57,13 +57,13 @@
 
 [Incubating] Problems report is available at: file:///home/runner/work/asutp-timer/asutp-timer/android/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 1m 25s
+BUILD SUCCESSFUL in 1m 23s
 184 actionable tasks: 184 executed
 
 ### Файл
--rw-r--r-- 1 runner runner 4604779 Nov 21 21:19 android/app/build/outputs/apk/debug/app-debug.apk
-sha256: 99e379d1f9d024133722678ec700ca3dd7a3160d3455266c1b63c918616a8a1c
-байт:   4604779
+-rw-r--r-- 1 runner runner 4604919 Nov 21 21:40 android/app/build/outputs/apk/debug/app-debug.apk
+sha256: ee1a9eb5c796c7846ab85a37b0f3d3d3f9e4aa1daea3010575c9df718243f02c
+байт:   4604919
 
 ### Целостность архива
     testing: org/apache/cordova/allowlist/index.html   OK
@@ -72,9 +72,9 @@ No errors detected in compressed data of android/app/build/outputs/apk/debug/app
 
 ### Подпись
 V2 Signer: certificate DN: C=US, O=Android, CN=Android Debug
-V2 Signer: certificate SHA-256 digest: 439c6479d6bab3cbaa0c71beb127d567a0de964d256ad0fa065dffe185fb187f
-V2 Signer: certificate SHA-1 digest: f59dc8c365fe36aca1f7311ef48eed84c96362a0
-V2 Signer: certificate MD5 digest: 6a6899a32bfd23a7e0ffde2987fa0e0d
+V2 Signer: certificate SHA-256 digest: aac81ac4a0d2d6a50f0935dd37cf70441952f08689de901f6e74c681f2d4ed4f
+V2 Signer: certificate SHA-1 digest: 1987daca41f485b3cb62716392a30d4030ac7b8a
+V2 Signer: certificate MD5 digest: 235ed397d914bad3f3394d21fdf96af8
 
 ### badging (пакет, версии, разрешения)
 package: name='com.asutp.timer' versionCode='1' versionName='1.0' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
@@ -142,9 +142,9 @@ application-label-fi:'ASUTP Timer'
 
 ### Где лежит debug.keystore (нужно для кэша ключей)
 total 12
-drwxr-xr-x  2 runner runner 4096 Nov 21 21:19 .
-drwxr-x--- 16 runner runner 4096 Nov 21 21:19 ..
--rw-r--r--  1 runner runner  127 Nov 21 21:19 analytics.settings
+drwxr-xr-x  2 runner runner 4096 Nov 21 21:39 .
+drwxr-x--- 16 runner runner 4096 Nov 21 21:39 ..
+-rw-r--r--  1 runner runner  127 Nov 21 21:39 analytics.settings
 /home/runner/.config/.android/debug.keystore
 
 
