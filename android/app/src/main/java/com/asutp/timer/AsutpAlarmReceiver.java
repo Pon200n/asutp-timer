@@ -38,6 +38,12 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
     public static final String PREFS = "asutp_alarm";
     public static final String KEY_PENDING = "pending";
 
+    /**
+     * Фиксированный id уведомления тревоги: все тревоги смены занимают
+     * ОДНО место в шторке — новая заменяет предыдущую, а не копится стопкой.
+     */
+    public static final int NOTIFICATION_ID = 4243;
+
     private static final String TAG = "AsutpAlarm";
 
     @Override
@@ -48,9 +54,8 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
         if (ACTION_ACK.equals(action)) {
             // Нажата кнопка «ПРИНЯТО / ДАЛЕЕ» на уведомлении
             AlarmSound.stop(ctx);
-            int ackId = intent.getIntExtra(EXTRA_ID, 0);
             try {
-                NotificationManagerCompat.from(ctx).cancel(ackId);
+                NotificationManagerCompat.from(ctx).cancel(NOTIFICATION_ID);
             } catch (Exception e) {
                 Log.e(TAG, "не удалось снять уведомление: " + e.getMessage());
             }
@@ -153,7 +158,7 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
                 .setFullScreenIntent(contentPi, true)
                 .addAction(0, "ПРИНЯТО / ДАЛЕЕ", ackPi);
 
-        NotificationManagerCompat.from(ctx).notify(id, b.build());
+        NotificationManagerCompat.from(ctx).notify(NOTIFICATION_ID, b.build());
     }
 
     /** Канал уведомлений: без системного звука — звучит нативный зуммер. */

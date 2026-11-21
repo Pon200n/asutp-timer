@@ -80,7 +80,7 @@ App.Shift = {
     // Фоновая служба: пока идёт смена, MIUI не должен убивать процесс,
     // а в шторке висит Live-Bar с текущей операцией и отсчётом.
     if (App.Native && App.Native.fgs) {
-      App.Native.startForegroundService('СМЕНА АКТИВНА', 'Старт смены…');
+      App.Native.updateLiveBar('ОЖИДАНИЕ СТАРТА', 'Смена запланирована', startMs, 0, 100);
     }
 
     if (startMs > Date.now()) {
@@ -104,7 +104,7 @@ App.Shift = {
     App.UI.setHudProgress(0);
     App.UI.highlightScheduleRow(-1);
     if (App.Swipe) App.Swipe.resetStopSwipes();
-    if (App.Native && App.Native.fgs) App.Native.stopForegroundService();
+    if (App.Native) App.Native.stopLiveBar();
     this.rebuild();
   },
 
@@ -113,23 +113,51 @@ App.Shift = {
     this.tickTimer = setInterval(() => this.tick(), 500);
   },
 
-  // Live-Bar в шторке (Foreground Service): обновляем раз в 2 секунды,
-  // чтобы не жечь батарею. Плюс он держит процесс живым во время смены.
-  updateLiveBar: function () {
-    if (!App.Native || !App.Native.fgs) return;
+  // Live-Bar в шторке: текущая операция, обратный отсчёт (его ведёт система)
+  // и полоса прогресса. Обновляем раз в 5 секунд — чаще не нужно.
+  updateLiveBar: function (nowMs) {
+    if (!App.Native) return;
     this._fgsTick = (this._fgsTick || 0) + 1;
-    if (this._fgsTick % 4 !== 0) return;
-    const hud = App.UI.getHudText();
-    const title = hud.status || 'СМЕНА АКТИВНА';
-    const body = (hud.op ? hud.op + ' · ' : '') + hud.timer;
-    App.Native.updateForegroundService(title, body);
+    if (this._fgsTick % 10 !== 0) return;
+
+    let title = 'СМЕНА АКТИВНА';
+    let body = '';
+    let endMs = 0, progress = 0, total = 100;
+
+    const shiftStart = App.State.shiftStartMs;
+    if (shiftStart && nowMs < shiftStart) {
+      title = 'ОЖИДАНИЕ СТАРТА';
+      body = 'Смена запланирована';
+      endMs = shiftStart;
+    } else {
+      const ev = this.currentEvent();
+      if (ev) {
+        body = ev.label;
+        if (ev.endMs > ev.startMs) {
+          endMs = ev.endMs;
+          total = ev.endMs - ev.startMs;
+          progress = Math.round(Math.max(0, Math.min(total, nowMs - ev.startMs)) * 100 / total);
+        }
+      } else {
+        title = 'ЗАВЕРШЕНА';
+        body = 'Все операции выполнены';
+      }
+    }
+    App.Native.updateLiveBar(title, body, endMs, progress, total);
+  },
+
+  // Текущая операция: первая ещё не отработавшая
+  currentEvent: function () {
+    if (!this.events || !this.events.length) return null;
+    const idx = this.events.findIndex(e => !e.fired);
+    return (idx === -1) ? null : this.events[idx];
   },
 
   tick: function () {
     App.UI.tickClock();
     if (!App.State.isRunning || !App.State.shiftStartMs) return;
-    this.updateLiveBar();
     const nowMs = Date.now();
+    this.updateLiveBar(nowMs);
     const shiftStartMs = App.State.shiftStartMs;
 
     if (nowMs < shiftStartMs) {

@@ -37,21 +37,16 @@
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
 
-        <!-- Foreground Service (@capawesome-team/capacitor-android-foreground-service).
-             Служба и ресивер НЕ объявлены в манифесте самого плагина —
-             без этих строк фоновая служба не запустится. -->
+        <!-- Live-Bar смены: своя foreground-служба с системным хронометром
+             и полосой прогресса. -->
         <service
-            android:name="io.capawesome.capacitorjs.plugins.foregroundservice.AndroidForegroundService"
+            android:name="com.asutp.timer.AsutpLiveService"
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Системные будильники смены АСУТП: постоянное уведомление с текущей операцией и обратным отсчётом" />
+                android:value="Системные будильники смены АСУТП: постоянное уведомление с текущей операцией, обратным отсчётом и прогрессом" />
         </service>
-
-        <receiver
-            android:name="io.capawesome.capacitorjs.plugins.foregroundservice.NotificationActionBroadcastReceiver"
-            android:exported="false" />
 
         <!-- Системные будильники смены (AlarmManager → полноэкранное уведомление) -->
         <receiver

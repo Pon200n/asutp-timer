@@ -277,7 +277,33 @@ App.Native = {
     return this.alarm.ackAlarm().catch(function () {});
   },
 
-  // ---------- FOREGROUND SERVICE ----------
+  // ---------- LIVE-BAR (своя foreground-служба) ----------
+  // Отсчёт ведёт система (setChronometerWhen + setChronometerCountDown),
+  // поэтому обновляем не чаще раза в 5 секунд — и только при смене операции
+  // обновление не нужно вовсе.
+
+  updateLiveBar: function (title, body, endMs, progress, total) {
+    if (this.alarmAvailable) {
+      return this.alarm.updateLiveBar({
+        title: title,
+        body: body,
+        endMs: endMs || 0,
+        progress: progress || 0,
+        total: total || 100
+      }).catch(function (e) { console.warn('[Native] updateLiveBar:', e); });
+    }
+    // запасной путь: обычный плагин ForegroundService
+    return this.updateForegroundService(title, body);
+  },
+
+  stopLiveBar: function () {
+    if (this.alarmAvailable) {
+      return this.alarm.stopLiveBar().catch(function () {});
+    }
+    return this.stopForegroundService();
+  },
+
+  // ---------- FOREGROUND SERVICE (запасной путь, плагин capawesome) ----------
 
   startForegroundService: function (title, body) {
     if (!this.fgs) return Promise.resolve();
@@ -286,7 +312,7 @@ App.Native = {
       id: this.FGS_CHANNEL,
       name: 'Смена АСУТП',
       description: 'Текущая операция и обратный отсчёт',
-      importance: 4   // важно: Live-Bar должен быть виден в шторке, но без звука (silent: true)
+      importance: 4
     }).catch(function () {}).then(function () {
       return self.fgs.startForegroundService({
         id: App.Native.FGS_ID,

@@ -196,6 +196,52 @@ public class AsutpAlarmPlugin extends Plugin {
         call.resolve();
     }
 
+    // ---------- LIVE-BAR (foreground service) ----------
+
+    /**
+     * Показывает «живой» индикатор смены: текущая операция, обратный отсчёт
+     * (его ведёт система) и полоса прогресса.
+     */
+    @PluginMethod
+    public void updateLiveBar(PluginCall call) {
+        try {
+            Context ctx = getContext();
+            AsutpLiveService.ensureChannel(ctx);
+
+            Intent i = new Intent(ctx, AsutpLiveService.class);
+            i.setAction(AsutpLiveService.ACTION_UPDATE);
+            i.putExtra(AsutpLiveService.EXTRA_TITLE, call.getString("title", ""));
+            i.putExtra(AsutpLiveService.EXTRA_BODY, call.getString("body", ""));
+            i.putExtra(AsutpLiveService.EXTRA_END, call.getLong("endMs", 0L));
+            i.putExtra(AsutpLiveService.EXTRA_PROGRESS, call.getInt("progress", 0));
+            i.putExtra(AsutpLiveService.EXTRA_TOTAL, call.getInt("total", 100));
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ctx.startForegroundService(i);
+            } else {
+                ctx.startService(i);
+            }
+            call.resolve();
+        } catch (Exception e) {
+            Log.e(TAG, "updateLiveBar: " + e.getMessage());
+            call.reject("Ошибка Live-Bar: " + e.getMessage());
+        }
+    }
+
+    @PluginMethod
+    public void stopLiveBar(PluginCall call) {
+        try {
+            Context ctx = getContext();
+            Intent i = new Intent(ctx, AsutpLiveService.class);
+            i.setAction(AsutpLiveService.ACTION_STOP);
+            ctx.startService(i);
+            call.resolve();
+        } catch (Exception e) {
+            Log.e(TAG, "stopLiveBar: " + e.getMessage());
+            call.resolve();
+        }
+    }
+
     // ---------- ГОЛОС ТРЕВОГИ ----------
 
     /**
