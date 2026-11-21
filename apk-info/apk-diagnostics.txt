@@ -1,7 +1,7 @@
 ### Файл
--rw-r--r-- 1 runner runner 4586425 Nov 21 18:44 android/app/build/outputs/apk/debug/app-debug.apk
-sha256: 36458668f38a8b0ff4c31eb41116a147e40bf08cb70960c035a73c8680ec2a80
-байт:   4586425
+-rw-r--r-- 1 runner runner 4596469 Nov 21 18:54 android/app/build/outputs/apk/debug/app-debug.apk
+sha256: 0609dc4a335a50779d00c9736148380aaa327c8659f5b7d71d2afd4433c653b1
+байт:   4596469
 
 ### Целостность архива
     testing: org/apache/cordova/allowlist/index.html   OK
@@ -10,9 +10,9 @@ No errors detected in compressed data of android/app/build/outputs/apk/debug/app
 
 ### Подпись
 V2 Signer: certificate DN: C=US, O=Android, CN=Android Debug
-V2 Signer: certificate SHA-256 digest: 72bc0e8526697e98af048dd6bcf1fb7f65584ed9d2be10229c6628ff4f4c7e2a
-V2 Signer: certificate SHA-1 digest: 6e29ab1a4b5054b3a9695179e6370fe72c85766a
-V2 Signer: certificate MD5 digest: cb85a46b7eb249ab5d4f47caae578574
+V2 Signer: certificate SHA-256 digest: b84600e5d31987c5ed59dd53fcad93df041989764786d625b60f7ca322ee1f8f
+V2 Signer: certificate SHA-1 digest: 8ac41c052978dd1bdf80d032c3ad191f2f3ac171
+V2 Signer: certificate MD5 digest: 53ad2d99722141db630ffb3131a4cd6d
 
 ### badging (пакет, версии, разрешения)
 package: name='com.asutp.timer' versionCode='1' versionName='1.0' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
@@ -58,18 +58,18 @@ application-label-fr:'ASUTP Timer'
 
 ### Веб-ресурсы и звуки внутри APK
     15781  1981-01-01 01:01   assets/public/index.html
-    14726  1981-01-01 01:01   assets/public/js/alerts.js
+    15286  1981-01-01 01:01   assets/public/js/alerts.js
      1936  1981-01-01 01:01   assets/public/js/config.js
      4949  1981-01-01 01:01   assets/public/js/locks.js
-     9161  1981-01-01 01:01   assets/public/js/native.js
+    13737  1981-01-01 01:01   assets/public/js/native.js
      4671  1981-01-01 01:01   assets/public/js/scheduler.js
      8732  1981-01-01 01:01   assets/public/js/settings.js
-     7798  1981-01-01 01:01   assets/public/js/shift.js
+     9322  1981-01-01 01:01   assets/public/js/shift.js
      4563  1981-01-01 01:01   assets/public/js/state.js
      9690  1981-01-01 01:01   assets/public/js/swipe.js
      7705  1981-01-01 01:01   assets/public/js/templates.js
      1015  1981-01-01 01:01   assets/public/js/toast.js
-     4475  1981-01-01 01:01   assets/public/js/ui.js
+     4897  1981-01-01 01:01   assets/public/js/ui.js
      2156  1981-01-01 01:01   assets/public/js/utils.js
      8741  1981-01-01 01:01   assets/public/vendor/capacitor.js
      1976  1981-01-01 01:01   assets/public/vendor/foreground-service.js
@@ -176,6 +176,11 @@ application-label-fr:'ASUTP Timer'
 
         <receiver
             android:name="io.capawesome.capacitorjs.plugins.foregroundservice.NotificationActionBroadcastReceiver"
+            android:exported="false" />
+
+        <!-- Системные будильники смены (AlarmManager → полноэкранное уведомление) -->
+        <receiver
+            android:name="com.asutp.timer.AsutpAlarmReceiver"
             android:exported="false" />
         <receiver android:name="com.capacitorjs.plugins.localnotifications.TimedNotificationPublisher" />
         <receiver android:name="com.capacitorjs.plugins.localnotifications.NotificationDismissReceiver" />
