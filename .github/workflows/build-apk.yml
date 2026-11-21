@@ -48,7 +48,12 @@ jobs:
           cd android
           chmod +x gradlew
           set -o pipefail
-          ./gradlew assembleDebug 2>&1 | tee ../gradle-build.log
+          if ! ./gradlew assembleDebug 2>&1 | tee ../gradle-build.log; then
+            echo "::error::Сборка APK не удалась, подробности в gradle-build.log"
+            grep -aE "error:|What went wrong|Caused by|Execution failed" ../gradle-build.log \
+              | head -25 | sed 's/::/:/g; s/^/::error::/' || true
+            exit 1
+          fi
 
       # Свойства собранного APK: подпись, манифест, целостность архива.
       # Отчёт уходит в лог сборки и в ветку build-info (её можно читать без авторизации).
