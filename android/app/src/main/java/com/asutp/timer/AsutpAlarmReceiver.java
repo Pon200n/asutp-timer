@@ -59,6 +59,15 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
             } catch (Exception e) {
                 Log.e(TAG, "не удалось снять уведомление: " + e.getMessage());
             }
+            // Событие считаем подтверждённым — опрос не должен показать его снова
+            try {
+                ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                        .edit()
+                        .remove(KEY_PENDING)
+                        .apply();
+            } catch (Exception e) {
+                Log.e(TAG, "не удалось снять отметку события: " + e.getMessage());
+            }
             AsutpAlarmPlugin.emit("alarmAction", intent.getStringExtra(EXTRA_PAYLOAD));
             return;
         }
@@ -66,6 +75,7 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
         // Обычное срабатывание будильника
         int id = intent.getIntExtra(EXTRA_ID, 0);
         String payload = intent.getStringExtra(EXTRA_PAYLOAD);
+        if (payload == null) payload = "{}";
 
         try {
             ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

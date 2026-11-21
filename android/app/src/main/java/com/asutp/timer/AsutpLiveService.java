@@ -85,10 +85,11 @@ public class AsutpLiveService extends Service {
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setPriority(NotificationCompat.PRIORITY_LOW);
 
-        // Отсчёт ведёт система: меняем только при смене операции
+        // Отсчёт ведёт система: NotificationCompat показывает поле when
+        // как секундомер, если включить setUsesChronometer.
         if (endMs > 0) {
-            b.setUsesChronometer(true)
-                    .setChronometerWhen(endMs)
+            b.setWhen(endMs)
+                    .setUsesChronometer(true)
                     .setChronometerCountDown(true);
         }
 

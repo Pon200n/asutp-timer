@@ -77,6 +77,9 @@ App.Native = {
         this.alarm = this.cap.registerPlugin('AsutpAlarm');
         this.alarmAvailable = true;
         this.listenNativeAlarm();
+        // Тревога могла сработать, пока приложение было убито: забираем её сразу,
+        // не дожидаясь очередного опроса
+        this.pollPendingAlarm();
         this.startPendingPoll();
       }
     }.bind(this));

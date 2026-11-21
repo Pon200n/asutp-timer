@@ -212,7 +212,8 @@ public class AsutpAlarmPlugin extends Plugin {
             i.setAction(AsutpLiveService.ACTION_UPDATE);
             i.putExtra(AsutpLiveService.EXTRA_TITLE, call.getString("title", ""));
             i.putExtra(AsutpLiveService.EXTRA_BODY, call.getString("body", ""));
-            i.putExtra(AsutpLiveService.EXTRA_END, call.getLong("endMs", 0L));
+            long endMs = call.getLong("endMs", 0L);
+            i.putExtra(AsutpLiveService.EXTRA_END, endMs);
             i.putExtra(AsutpLiveService.EXTRA_PROGRESS, call.getInt("progress", 0));
             i.putExtra(AsutpLiveService.EXTRA_TOTAL, call.getInt("total", 100));
 

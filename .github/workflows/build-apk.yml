@@ -47,11 +47,13 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          set -o pipefail
+          ./gradlew assembleDebug 2>&1 | tee ../gradle-build.log
 
       # Свойства собранного APK: подпись, манифест, целостность архива.
       # Отчёт уходит в лог сборки и в ветку build-info (её можно читать без авторизации).
       - name: APK diagnostics
+        if: always()
         run: |
           APK=android/app/build/outputs/apk/debug/app-debug.apk
           mkdir -p apk-info
@@ -86,6 +88,10 @@ jobs:
             echo "### Где лежит debug.keystore (нужно для кэша ключей)"
             ls -la "$HOME/.android/" 2>&1 | head -5
             find "$HOME" -name "debug.keystore" 2>/dev/null | head -5
+            echo
+            echo
+            echo "### Ошибки сборки gradle (если есть)"
+            if [ -f gradle-build.log ]; then grep -aE "error:|FAILURE|warning:|Caused by" gradle-build.log | head -30; else echo "(лога нет)"; fi
             echo
             echo "### Итоговый (merged) AndroidManifest.xml"
             MF=$(find android/app/build -name AndroidManifest.xml -path "*merged*" | head -1)
