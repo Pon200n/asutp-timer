@@ -135,7 +135,7 @@ public class AsutpAlarmPlugin extends Plugin {
 
             // Будильники, которых больше нет в расписании, снимаем
             for (int i = 0; i < prev.length(); i++) {
-                String key = prev.optString(i, "");
+                String key = prev.optString(i);
                 if (key.isEmpty()) continue;
                 if (ids.indexOf(key) >= 0) continue;
                 int oldId;
