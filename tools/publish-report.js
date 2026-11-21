@@ -45,10 +45,13 @@ async function put(file, content) {
   });
   const j = await r.json();
   if (j.commit) {
-    console.log('  ' + file + ' — ' + (sha ? 'обновлён' : 'создан'));
-  } else {
-    console.log('  ' + file + ' — ОШИБКА: ' + JSON.stringify(j).slice(0, 250));
+    const msg = file + ' — ' + (sha ? 'обновлён' : 'создан');
+    console.log('  ' + msg);
+    return msg;
   }
+  const msg = file + ' — ОШИБКА: ' + JSON.stringify(j).slice(0, 250);
+  console.log('  ' + msg);
+  return msg;
 }
 
 (async function () {
@@ -60,11 +63,24 @@ async function put(file, content) {
     console.log('нет папки ' + DIR + ' — нечего публиковать');
     return;
   }
+
+  const results = [];
   const files = fs.readdirSync(DIR).filter(function (f) {
-    return fs.statSync(path.join(DIR, f)).isFile();
+    return fs.statSync(path.join(DIR, f)).isFile() && f !== 'publish-report.log';
   });
+
   console.log('публикую в ветку ' + BRANCH + ': ' + files.join(', '));
   for (const f of files) {
-    await put(f, fs.readFileSync(path.join(DIR, f), 'utf8'));
+    results.push(await put(f, fs.readFileSync(path.join(DIR, f), 'utf8')));
+  }
+
+  // Лог публикации — в следующем прогоне он уедет в ветку, и мы увидим,
+  // почему что-то не публикуется (обычные логи Actions без токена не видны).
+  try {
+    fs.writeFileSync(path.join(DIR, 'publish-report.log'),
+      'запуск: ' + new Date().toISOString() + '\n' + results.join('\n') + '\n');
+    await put('publish-report.log', fs.readFileSync(path.join(DIR, 'publish-report.log'), 'utf8'));
+  } catch (e) {
+    console.error('не удалось записать лог публикации:', e.message);
   }
 })();
