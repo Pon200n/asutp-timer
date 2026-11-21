@@ -1,22 +1,35 @@
 window.App = window.App || {};
 
 /**
- * Нативный слой Capacitor: системные будильники, голос, канал уведомлений.
+ * Нативный слой Capacitor: системные будильники, голос, фоновая служба.
  *
  * Здесь живёт всё, что обязано работать при погашенном экране и при убитом
  * процессе. Логика расписания остаётся в JS (scheduler.js), но «звонок»
  * делает операционная система: AlarmManager будит телефон в нужную секунду.
  *
- * В браузере available === false, все методы — no-op, веб-прототип работает
- * как раньше.
+ * Три источника пробуждения (по убыванию надёжности):
+ *   1. AsutpAlarm — свой плагин внутри приложения: точные будильники
+ *      AlarmManager, полноэкранное уведомление (приложение открывается поверх
+ *      блокировки), нативный зуммер USAGE_ALARM в обход тишины;
+ *   2. LocalNotifications — резервный путь: обычное уведомление с кнопкой
+ *      «ПРИНЯТО / ДАЛЕЕ»;
+ *   3. ForegroundService — держит процесс живым во время смены и показывает
+ *      Live-Bar в шторке.
+ *
+ * В браузере всё деградирует в no-op: веб-прототип работает как раньше.
  */
 App.Native = {
 
-  available: false,
+  available: false,        // есть LocalNotifications
+  alarmAvailable: false,   // есть нативный плагин будильников
   cap: null,
-  ln: null,       // @capacitor/local-notifications
-  tts: null,      // @capacitor-community/text-to-speech
+  ln: null,                // @capacitor/local-notifications
+  tts: null,               // @capacitor-community/text-to-speech
+  alarm: null,             // AsutpAlarm (внутри приложения)
+  fgs: null,               // @capawesome-team/capacitor-android-foreground-service
   permission: null,
+  exactAlarm: null,
+  _pollTimer: null,
 
   // Идентификатор канала: v1 — потому что звук канала после создания
   // сменить нельзя, при смене звука нужен новый id (v2, v3, ...).
@@ -25,6 +38,9 @@ App.Native = {
   ACTION_TITLE: 'ПРИНЯТО / ДАЛЕЕ',
   SMALL_ICON: 'ic_stat_asutp',
   SOUND: 'asutp_alarm',
+
+  FGS_ID: 4242,
+  FGS_CHANNEL: 'asutp_service',
 
   init: function () {
     // Каждый шаг изолирован: сбой плагина не должен ронять интерфейс.
@@ -39,20 +55,40 @@ App.Native = {
     this.ln = P.LocalNotifications || null;
     this.tts = P.TextToSpeech || null;
 
-    if (!this.ln) {
-      console.warn('[Native] LocalNotifications недоступен — системных будильников не будет');
-      return;
-    }
-    this.available = true;
+    // Плагины, зарегистрированные нативно (список приходит из моста)
+    const headers = this.cap.PluginHeaders || [];
+    const has = function (name) {
+      return headers.some(function (h) { return h && h.name === name; });
+    };
 
-    step('createChannel', function () { App.Native.createAlarmChannel(); });
-    step('registerActionType', function () { App.Native.registerActionType(); });
-    step('listen', function () { App.Native.listen(); });
-    step('requestPermission', function () { App.Native.requestPermission(); });
-    step('checkExactAlarms', function () { App.Native.checkExactAlarms(); });
+    if (this.ln) {
+      this.available = true;
+      step('createChannel', function () { App.Native.createAlarmChannel(); });
+      step('registerActionType', function () { App.Native.registerActionType(); });
+      step('listen', function () { App.Native.listen(); });
+      step('requestPermission', function () { App.Native.requestPermission(); });
+      step('checkExactAlarms', function () { App.Native.checkExactAlarms(); });
+    } else {
+      console.warn('[Native] LocalNotifications недоступен');
+    }
+
+    step('asutpAlarm', function () {
+      if (this.cap.registerPlugin && has('AsutpAlarm')) {
+        this.alarm = this.cap.registerPlugin('AsutpAlarm');
+        this.alarmAvailable = true;
+        this.listenNativeAlarm();
+        this.startPendingPoll();
+      }
+    }.bind(this));
+
+    step('foregroundService', function () {
+      if (this.cap.registerPlugin && has('ForegroundService')) {
+        this.fgs = this.cap.registerPlugin('ForegroundService');
+      }
+    }.bind(this));
   },
 
-  // ---------- КАНАЛ УВЕДОМЛЕНИЙ ----------
+  // ---------- КАНАЛ УВЕДОМЛЕНИЙ (резервный путь) ----------
 
   createAlarmChannel: function () {
     return this.ln.createChannel({
@@ -67,8 +103,6 @@ App.Native = {
     }).catch(function (e) { console.warn('[Native] createChannel:', e); });
   },
 
-  // ---------- КНОПКА «ПРИНЯТО / ДАЛЕЕ» НА УВЕДОМЛЕНИИ ----------
-
   registerActionType: function () {
     return this.ln.registerActionTypes({
       types: [{
@@ -80,16 +114,13 @@ App.Native = {
 
   listen: function () {
     // Уведомление доставлено ОС — это и есть сигнал тревоги.
-    // Событие приходит даже если приложение в фоне (процесс жив),
-    // а если процесс был убит — накопливается и приходит при следующем запуске.
     this.ln.addListener('localNotificationReceived', function (notification) {
       if (App.Alerts) App.Alerts.onNativeAlarm(notification);
     });
-
     // Нажата кнопка действия на уведомлении (экран блокировки / шторка).
     this.ln.addListener('localNotificationActionPerformed', function (action) {
       const notification = (action && action.notification) || {};
-      if (App.Alerts) App.Alerts.onNativeAction(notification, action);
+      if (App.Alerts) App.Alerts.onNativeAction(notification);
     });
   },
 
@@ -101,7 +132,6 @@ App.Native = {
         if (App.UI) App.UI.setHudStatus('НЕТ РАЗРЕШЕНИЯ НА УВЕДОМЛЕНИЯ', 'var(--red)');
         if (App.Toast) App.Toast.show('Нет разрешения на уведомления — будильники не сработают');
       } else if (App.Shift) {
-        // Разрешение могло быть выдано только что — пересобираем будильники
         App.Shift.rescheduleAlerts();
       }
       return res;
@@ -109,8 +139,7 @@ App.Native = {
   },
 
   // ---------- ТОЧНЫЕ БУДИЛЬНИКИ (Android 12+) ----------
-  // На Android 12+ точные будильники — отдельное разрешение, его выдаёт
-  // пользователь в настройках. Без него система сработает «когда-нибудь».
+
   checkExactAlarms: function () {
     if (!this.ln || !this.ln.checkExactNotificationSetting) return Promise.resolve(null);
     return this.ln.checkExactNotificationSetting().then(function (res) {
@@ -124,7 +153,6 @@ App.Native = {
     }).catch(function () {});
   },
 
-  // Открыть системные настройки разрешения на точные будильники
   openExactAlarmSettings: function () {
     if (!this.ln || !this.ln.changeExactNotificationSetting) return Promise.resolve();
     return this.ln.changeExactNotificationSetting().catch(function () {});
@@ -137,6 +165,33 @@ App.Native = {
    * alert = { id, atMs, title, text, kind, mode, eventIdx, chainIdx }
    */
   scheduleAlerts: function (alerts) {
+    if (!alerts || !alerts.length) return Promise.resolve(0);
+
+    // Основной путь — нативный плагин: полноэкранное уведомление + USAGE_ALARM
+    if (this.alarmAvailable) {
+      const list = [];
+      for (let i = 0; i < alerts.length; i++) {
+        const a = alerts[i];
+        list.push({
+          id: a.id,
+          atMs: a.atMs,
+          title: a.title,
+          text: a.text,
+          kind: a.kind,
+          mode: a.mode,
+          eventIdx: (a.eventIdx === undefined ? -1 : a.eventIdx)
+        });
+      }
+      return this.alarm.scheduleAlerts({ alerts: list })
+        .then(function (res) { return (res && res.scheduled) || 0; })
+        .catch(function (e) { console.warn('[Native] scheduleAlerts:', e); return 0; });
+    }
+
+    return this.scheduleNotifications(alerts);
+  },
+
+  // Резервный путь: обычные уведомления через LocalNotifications
+  scheduleNotifications: function (alerts) {
     if (!this.ln || !alerts || !alerts.length) return Promise.resolve(0);
     const now = Date.now();
     const list = [];
@@ -172,15 +227,90 @@ App.Native = {
   },
 
   cancelAlerts: function () {
-    if (!this.ln) return Promise.resolve();
-    return this.ln.cancelAll().catch(function () {});
+    const jobs = [];
+    if (this.alarmAvailable) jobs.push(this.alarm.cancelAlerts().catch(function () {}));
+    if (this.ln) jobs.push(this.ln.cancelAll().catch(function () {}));
+    return Promise.all(jobs);
   },
 
-  // Снять конкретное уведомление (после подтверждения тревоги)
   cancelById: function (alertId) {
     if (!this.ln) return Promise.resolve();
     return this.ln.cancel({ notifications: [{ id: 900000 + alertId }] })
       .catch(function () {});
+  },
+
+  // ---------- НАПЛЯВНЫЕ СОБЫТИЯ ОТ НАВИВНОГО ПЛАГИНА ----------
+
+  listenNativeAlarm: function () {
+    this.alarm.addListener('alarmFired', function (data) {
+      if (App.Alerts) App.Alerts.onNativeAlarm(data);
+    });
+    this.alarm.addListener('alarmAction', function (data) {
+      if (App.Alerts) App.Alerts.onNativeAction(data);
+    });
+  },
+
+  // Событие могло сработать, пока приложение было убито — подхватываем его
+  startPendingPoll: function () {
+    if (!this.alarmAvailable || this._pollTimer) return;
+    const self = this;
+    this._pollTimer = setInterval(function () { self.pollPendingAlarm(); }, 4000);
+  },
+
+  pollPendingAlarm: function () {
+    if (!this.alarmAvailable) return;
+    this.alarm.getPendingAlarm().then(function (data) {
+      if (data && data.id !== undefined && data.id !== null) {
+        if (App.Alerts) App.Alerts.onNativeAlarm(data);
+      }
+    }).catch(function () {});
+  },
+
+  // Подтверждение: гасим нативный зуммер и вибрацию
+  ackAlarm: function () {
+    if (!this.alarmAvailable) return Promise.resolve();
+    return this.alarm.ackAlarm().catch(function () {});
+  },
+
+  // ---------- FOREGROUND SERVICE ----------
+
+  startForegroundService: function (title, body) {
+    if (!this.fgs) return Promise.resolve();
+    const self = this;
+    return this.fgs.createNotificationChannel({
+      id: this.FGS_CHANNEL,
+      name: 'Смена АСУТП',
+      description: 'Текущая операция и обратный отсчёт',
+      importance: 3
+    }).catch(function () {}).then(function () {
+      return self.fgs.startForegroundService({
+        id: App.Native.FGS_ID,
+        title: title,
+        body: body,
+        smallIcon: App.Native.SMALL_ICON,
+        notificationChannelId: App.Native.FGS_CHANNEL,
+        ongoing: true,
+        silent: true
+      });
+    }).catch(function (e) { console.warn('[Native] startForegroundService:', e); });
+  },
+
+  updateForegroundService: function (title, body) {
+    if (!this.fgs) return Promise.resolve();
+    return this.fgs.updateForegroundService({
+      id: this.FGS_ID,
+      title: title,
+      body: body,
+      smallIcon: this.SMALL_ICON,
+      notificationChannelId: this.FGS_CHANNEL,
+      ongoing: true,
+      silent: true
+    }).catch(function () {});
+  },
+
+  stopForegroundService: function () {
+    if (!this.fgs) return Promise.resolve();
+    return this.fgs.stopForegroundService().catch(function () {});
   },
 
   // ---------- ГОЛОС ----------

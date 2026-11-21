@@ -77,6 +77,12 @@ App.Shift = {
     if (App.Locks) App.Locks.disable('startCard');
     if (App.Alerts) App.Alerts.initAudio();
 
+    // Фоновая служба: пока идёт смена, MIUI не должен убивать процесс,
+    // а в шторке висит Live-Bar с текущей операцией и отсчётом.
+    if (App.Native && App.Native.fgs) {
+      App.Native.startForegroundService('СМЕНА АКТИВНА', 'Старт смены…');
+    }
+
     if (startMs > Date.now()) {
       App.UI.setHudStatus('ОЖИДАНИЕ СТАРТА', 'var(--yellow)');
       if (App.Alerts) App.Alerts.speak('Смена запланирована. Ожидание времени старта.');
@@ -98,6 +104,7 @@ App.Shift = {
     App.UI.setHudProgress(0);
     App.UI.highlightScheduleRow(-1);
     if (App.Swipe) App.Swipe.resetStopSwipes();
+    if (App.Native && App.Native.fgs) App.Native.stopForegroundService();
     this.rebuild();
   },
 
@@ -106,9 +113,22 @@ App.Shift = {
     this.tickTimer = setInterval(() => this.tick(), 500);
   },
 
+  // Live-Bar в шторке (Foreground Service): обновляем раз в 2 секунды,
+  // чтобы не жечь батарею. Плюс он держит процесс живым во время смены.
+  updateLiveBar: function () {
+    if (!App.Native || !App.Native.fgs) return;
+    this._fgsTick = (this._fgsTick || 0) + 1;
+    if (this._fgsTick % 4 !== 0) return;
+    const hud = App.UI.getHudText();
+    const title = hud.status || 'СМЕНА АКТИВНА';
+    const body = (hud.op ? hud.op + ' · ' : '') + hud.timer;
+    App.Native.updateForegroundService(title, body);
+  },
+
   tick: function () {
     App.UI.tickClock();
     if (!App.State.isRunning || !App.State.shiftStartMs) return;
+    this.updateLiveBar();
     const nowMs = Date.now();
     const shiftStartMs = App.State.shiftStartMs;
 
@@ -132,6 +152,7 @@ App.Shift = {
 
     const nextIdx = this.events.findIndex(e => !e.fired);
     if (nextIdx === -1) {
+      App.UI.setHudStatus('ЗАВЕРШЕНА', 'var(--cyan)');
       App.UI.setHudOp('Все операции выполнены!');
       App.UI.setHudTimer('ГОТОВО');
       App.UI.setHudProgress(100);
@@ -140,6 +161,11 @@ App.Shift = {
     }
 
     const ev = this.events[nextIdx];
+
+    // Статус смены: во время перерыва — «РЕГЛАМЕНТНЫЙ ПЕРЕРЫВ» (ТЗ п.2.2)
+    const isBreak = (ev.type === 'break_start' || ev.type === 'break_end');
+    App.UI.setHudStatus(isBreak ? 'РЕГЛАМЕНТНЫЙ ПЕРЕРЫВ' : 'СМЕНА АКТИВНА',
+                        isBreak ? 'var(--yellow)' : 'var(--green)');
     const diffSec = (ev.endMs - nowMs) / 1000;
     App.UI.setHudOp(ev.label);
     App.UI.setHudTimer(App.Utils.fmtCountdown(Math.ceil(diffSec)));

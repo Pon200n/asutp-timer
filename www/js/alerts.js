@@ -250,27 +250,31 @@ App.Alerts = {
   },
 
   // Системное уведомление доставлено — это сигнал тревоги.
-  onNativeAlarm: function (notification) {
-    if (!notification) return;
-    const extra = notification.extra || {};
-    const id = extra.alertId;
+  // Приходит либо от LocalNotifications (payload.extra.alertId + body),
+  // либо от нативного плагина (id + text).
+  onNativeAlarm: function (data) {
+    if (!data) return;
+    const extra = data.extra || {};
+    const id = (extra.alertId !== undefined && extra.alertId !== null) ? extra.alertId : data.id;
     if (id === undefined || id === null) return;
     if (this.handled[id]) return;              // уже показали или уже подтвердили
     this.handled[id] = true;
+    const text = (data.body !== undefined && data.body !== null) ? data.body : (data.text || '');
     this.enqueue({
       id: id,
-      title: notification.title || 'ВНИМАНИЕ',
-      text: notification.body || '',
-      kind: extra.kind,
-      mode: extra.mode,
-      eventIdx: extra.eventIdx
+      title: data.title || 'ВНИМАНИЕ',
+      text: text,
+      kind: extra.kind || data.kind,
+      mode: extra.mode || data.mode,
+      eventIdx: (extra.eventIdx !== undefined ? extra.eventIdx : data.eventIdx)
     });
   },
 
   // Нажата кнопка «ПРИНЯТО / ДАЛЕЕ» на уведомлении (экран блокировки или шторка).
-  onNativeAction: function (notification, action) {
-    const extra = (notification && notification.extra) || {};
-    const id = extra.alertId;
+  onNativeAction: function (data) {
+    if (!data) return;
+    const extra = data.extra || {};
+    const id = (extra.alertId !== undefined && extra.alertId !== null) ? extra.alertId : data.id;
     if (id !== undefined && id !== null) this.handled[id] = true;
 
     if (this.isShowing && this.currentAlert) {
@@ -340,10 +344,12 @@ App.Alerts = {
       if (window.speechSynthesis) window.speechSynthesis.cancel();
       if (navigator.vibrate) navigator.vibrate(0);
     } catch (e) {}
-    if (App.Native && App.Native.available) {
+    if (App.Native && (App.Native.available || App.Native.alarmAvailable)) {
       App.Native.stopSpeak();
+      // Гасим нативный зуммер (USAGE_ALARM) и вибрацию
+      App.Native.ackAlarm();
       // Убираем подтверждённое уведомление из шторки
-      if (this.currentAlert && this.currentAlert.id !== undefined) {
+      if (App.Native.available && this.currentAlert && this.currentAlert.id !== undefined) {
         App.Native.cancelById(this.currentAlert.id);
       }
     }

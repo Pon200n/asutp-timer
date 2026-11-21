@@ -1,0 +1,272 @@
+package com.asutp.timer;
+
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
+import android.provider.Settings;
+import android.util.Log;
+
+import com.getcapacitor.JSArray;
+import com.getcapacitor.JSObject;
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.CapacitorPlugin;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+/**
+ * Нативные системные будильники смены.
+ *
+ * JS отдаёт список событий (id, atMs, title, text, kind, mode), плагин ставит
+ * точные будильники AlarmManager. Ближайший — через setAlarmClock (не
+ * откладывается в Doze), остальные — setExactAndAllowWhileIdle.
+ *
+ * Пробуждение и доставка происходят силами системы: приложение может быть
+ * свёрнуто или убито — будильник всё равно сработает.
+ */
+@CapacitorPlugin(name = "AsutpAlarm")
+public class AsutpAlarmPlugin extends Plugin {
+
+    private static final String TAG = "AsutpAlarm";
+    private static final String PREFS = "asutp_alarm";
+    private static final String KEY_IDS = "ids";
+
+    private static AsutpAlarmPlugin instance;
+
+    @Override
+    public void load() {
+        super.load();
+        instance = this;
+    }
+
+    // ---------- ПЛАНИРОВАНИЕ ----------
+
+    @PluginMethod
+    public void scheduleAlerts(PluginCall call) {
+        try {
+            Context ctx = getContext();
+            AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+            if (am == null) {
+                call.reject("AlarmManager недоступен");
+                return;
+            }
+
+            JSArray arr = call.getArray("alerts");
+            if (arr == null) {
+                call.reject("alerts обязателен");
+                return;
+            }
+
+            List<Object> raw = arr.toList();
+            List<JSONObject> items = new ArrayList<>();
+            for (Object o : raw) {
+                if (o instanceof JSONObject) {
+                    items.add((JSONObject) o);
+                }
+            }
+            Collections.sort(items, new Comparator<JSONObject>() {
+                @Override
+                public int compare(JSONObject a, JSONObject b) {
+                    return Long.compare(a.optLong("atMs"), b.optLong("atMs"));
+                }
+            });
+
+            long now = System.currentTimeMillis();
+            StringBuilder ids = new StringBuilder();
+            int scheduled = 0;
+            boolean first = true;
+
+            for (int i = 0; i < items.size(); i++) {
+                JSONObject it = items.get(i);
+                long at = it.optLong("atMs");
+                if (at <= now) {
+                    continue;   // прошедшие события не планируем
+                }
+                int id = it.optInt("id", i + 1);
+                PendingIntent pi = alarmPendingIntent(id, it.toString());
+
+                if (first) {
+                    // Ближайший будильник — setAlarmClock: в Doze не откладывается
+                    AlarmManager.AlarmClockInfo info =
+                            new AlarmManager.AlarmClockInfo(at, showPendingIntent(id));
+                    am.setAlarmClock(info, pi);
+                    first = false;
+                } else {
+                    am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi);
+                }
+
+                if (ids.length() > 0) ids.append(",");
+                ids.append(id);
+                scheduled++;
+            }
+
+            ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                    .edit()
+                    .putString(KEY_IDS, ids.toString())
+                    .apply();
+            AsutpAlarmReceiver.ensureChannel(ctx);
+
+            call.resolve(new JSObject().put("scheduled", scheduled));
+        } catch (Exception e) {
+            Log.e(TAG, "scheduleAlerts: " + e.getMessage());
+            call.reject("Ошибка планирования: " + e.getMessage());
+        }
+    }
+
+    @PluginMethod
+    public void cancelAlerts(PluginCall call) {
+        try {
+            Context ctx = getContext();
+            AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+            String ids = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                    .getString(KEY_IDS, "");
+
+            if (am != null && ids != null && !ids.isEmpty()) {
+                String[] parts = ids.split(",");
+                for (String p : parts) {
+                    if (p == null || p.isEmpty()) continue;
+                    int id;
+                    try {
+                        id = Integer.parseInt(p.trim());
+                    } catch (Exception e) {
+                        continue;
+                    }
+                    Intent i = new Intent(ctx, AsutpAlarmReceiver.class);
+                    i.setAction(AsutpAlarmReceiver.ACTION_ALARM);
+                    PendingIntent pi = PendingIntent.getBroadcast(ctx, id, i,
+                            PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE);
+                    if (pi != null) {
+                        am.cancel(pi);
+                        pi.cancel();
+                    }
+                }
+            }
+
+            ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                    .edit()
+                    .putString(KEY_IDS, "")
+                    .apply();
+            AlarmSound.stop(ctx);
+            call.resolve();
+        } catch (Exception e) {
+            Log.e(TAG, "cancelAlerts: " + e.getMessage());
+            call.reject("Ошибка отмены: " + e.getMessage());
+        }
+    }
+
+    // ---------- СОБЫТИЕ, ПРОПУЩЕННОЕ ПОКА ПРИЛОЖЕНИЕ БЫЛО УБИТО ----------
+
+    @PluginMethod
+    public void getPendingAlarm(PluginCall call) {
+        try {
+            Context ctx = getContext();
+            String payload = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                    .getString(AsutpAlarmReceiver.KEY_PENDING, null);
+            if (payload == null) {
+                call.resolve(new JSObject());
+                return;
+            }
+            ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                    .edit()
+                    .remove(AsutpAlarmReceiver.KEY_PENDING)
+                    .apply();
+            call.resolve(parsePayload(payload));
+        } catch (Exception e) {
+            Log.e(TAG, "getPendingAlarm: " + e.getMessage());
+            call.reject("Ошибка чтения события: " + e.getMessage());
+        }
+    }
+
+    // ---------- ПОДТВЕРЖДЕНИЕ ----------
+
+    @PluginMethod
+    public void ackAlarm(PluginCall call) {
+        AlarmSound.stop(getContext());
+        call.resolve();
+    }
+
+    // ---------- РАЗРЕШЕНИЕ НА ПОЛНОЭКРАННЫЕ УВЕДОМЛЕНИЯ ----------
+
+    @PluginMethod
+    public void canUseFullScreenIntent(PluginCall call) {
+        boolean allowed = true;
+        if (Build.VERSION.SDK_INT >= 34) {
+            try {
+                allowed = getContext().getPackageManager().checkPermission(
+                        "android.permission.USE_FULL_SCREEN_INTENT",
+                        getContext().getPackageName()) == PackageManager.PERMISSION_GRANTED;
+            } catch (Exception e) {
+                allowed = true;
+            }
+        }
+        call.resolve(new JSObject().put("allowed", allowed));
+    }
+
+    @PluginMethod
+    public void openFullScreenIntentSettings(PluginCall call) {
+        try {
+            Intent i = new Intent(
+                    Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT,
+                    Uri.parse("package:" + getContext().getPackageName()));
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(i);
+            call.resolve();
+        } catch (Exception e) {
+            Log.e(TAG, "openFullScreenIntentSettings: " + e.getMessage());
+            call.reject("Не удалось открыть настройки: " + e.getMessage());
+        }
+    }
+
+    // ---------- ВНУТРЕННЕЕ ----------
+
+    private PendingIntent alarmPendingIntent(int id, String payload) {
+        Intent i = new Intent(getContext(), AsutpAlarmReceiver.class);
+        i.setAction(AsutpAlarmReceiver.ACTION_ALARM);
+        i.putExtra(AsutpAlarmReceiver.EXTRA_ID, id);
+        i.putExtra(AsutpAlarmReceiver.EXTRA_PAYLOAD, payload);
+        return PendingIntent.getBroadcast(getContext(), id, i,
+                PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private PendingIntent showPendingIntent(int id) {
+        Intent i = new Intent(getContext(), MainActivity.class);
+        i.setAction(Intent.ACTION_MAIN);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        return PendingIntent.getActivity(getContext(), id, i,
+                PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private static JSObject parsePayload(String payload) {
+        JSObject out = new JSObject();
+        try {
+            JSONObject o = new JSONObject(payload);
+            out.put("id", o.optInt("id"));
+            out.put("title", o.optString("title", ""));
+            out.put("text", o.optString("text", ""));
+            out.put("kind", o.optString("kind", ""));
+            out.put("mode", o.optString("mode", ""));
+            out.put("eventIdx", o.optInt("eventIdx", -1));
+        } catch (JSONException e) {
+            Log.e(TAG, "битый payload: " + e.getMessage());
+        }
+        return out;
+    }
+
+    /** Передать событие в JS, если приложение живо. */
+    static void emit(String event, String payload) {
+        AsutpAlarmPlugin p = instance;
+        if (p == null || payload == null) return;
+        p.notifyListeners(event, parsePayload(payload), true);
+    }
+}

@@ -38,6 +38,18 @@ App.UI = {
     if (el) el.style.width = Math.max(0, Math.min(100, percent)) + '%';
   },
 
+  // Тексты Live-Bar — для уведомления в шторке
+  getHudText: function () {
+    const op = document.getElementById('hudOp');
+    const tm = document.getElementById('hudTimer');
+    const st = document.getElementById('hudStatus');
+    return {
+      op: op ? op.textContent : '',
+      timer: tm ? tm.textContent : '',
+      status: st ? st.textContent.replace(/^●\s*/, '') : ''
+    };
+  },
+
   renderSchedule: function (events, shiftStartMs) {
     const view = document.getElementById('scheduleView');
     if (!view) return;

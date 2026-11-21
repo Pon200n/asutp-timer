@@ -52,6 +52,11 @@
         <receiver
             android:name="io.capawesome.capacitorjs.plugins.foregroundservice.NotificationActionBroadcastReceiver"
             android:exported="false" />
+
+        <!-- Системные будильники смены (AlarmManager → полноэкранное уведомление) -->
+        <receiver
+            android:name="com.asutp.timer.AsutpAlarmReceiver"
+            android:exported="false" />
     </application>
 
     <!-- Permissions -->
