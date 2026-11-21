@@ -166,7 +166,7 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
                 .setAutoCancel(false)
                 .setContentIntent(contentPi)
                 .setFullScreenIntent(contentPi, true)
-                .addAction(0, "ПРИНЯТО / ДАЛЕЕ", ackPi);
+                .addAction(R.drawable.ic_stat_ack, "ПРИНЯТО / ДАЛЕЕ", ackPi);
 
         NotificationManagerCompat.from(ctx).notify(NOTIFICATION_ID, b.build());
     }

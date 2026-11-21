@@ -54,17 +54,25 @@ jobs:
       # Отчёт уходит в лог сборки и в ветку build-info (её можно читать без авторизации).
       - name: APK diagnostics
         if: always()
+        continue-on-error: true
         run: |
           APK=android/app/build/outputs/apk/debug/app-debug.apk
           mkdir -p apk-info
           {
+            echo "### Ошибки сборки gradle (если есть)"
+            if [ -f gradle-build.log ]; then
+              grep -aE "error:|FAILURE|What went wrong|Caused by|symbol:|location:" gradle-build.log | head -40
+            else
+              echo "(лога нет)"
+            fi
+            echo
             echo "### Файл"
-            ls -la "$APK"
-            echo "sha256: $(sha256sum "$APK" | cut -d' ' -f1)"
-            echo "байт:   $(stat -c%s "$APK")"
+            ls -la "$APK" 2>&1
+            echo "sha256: $(sha256sum "$APK" 2>/dev/null | cut -d' ' -f1)"
+            echo "байт:   $(stat -c%s "$APK" 2>/dev/null)"
             echo
             echo "### Целостность архива"
-            unzip -t "$APK" | tail -3
+            unzip -t "$APK" 2>&1 | tail -3
             echo
             echo "### Подпись"
             APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner 2>/dev/null | tail -1)
