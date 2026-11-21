@@ -1,6 +1,6 @@
 ### Файл
--rw-r--r-- 1 runner runner 4596469 Nov 21 18:54 android/app/build/outputs/apk/debug/app-debug.apk
-sha256: 0609dc4a335a50779d00c9736148380aaa327c8659f5b7d71d2afd4433c653b1
+-rw-r--r-- 1 runner runner 4596469 Nov 21 19:22 android/app/build/outputs/apk/debug/app-debug.apk
+sha256: d131e705fdbe67c8e94e56232456af06d382ba56615dae82f36454df97324e65
 байт:   4596469
 
 ### Целостность архива
@@ -10,9 +10,9 @@ No errors detected in compressed data of android/app/build/outputs/apk/debug/app
 
 ### Подпись
 V2 Signer: certificate DN: C=US, O=Android, CN=Android Debug
-V2 Signer: certificate SHA-256 digest: b84600e5d31987c5ed59dd53fcad93df041989764786d625b60f7ca322ee1f8f
-V2 Signer: certificate SHA-1 digest: 8ac41c052978dd1bdf80d032c3ad191f2f3ac171
-V2 Signer: certificate MD5 digest: 53ad2d99722141db630ffb3131a4cd6d
+V2 Signer: certificate SHA-256 digest: 3d1769285caefe8acbd894861c77e0cbd3e5c3d002f3a33ce83898273261ffa0
+V2 Signer: certificate SHA-1 digest: 654f61b882ecd3873f06b6957b167a01a3df08ea
+V2 Signer: certificate MD5 digest: fda9259ec4d2f10ce869800c6ee062b7
 
 ### badging (пакет, версии, разрешения)
 package: name='com.asutp.timer' versionCode='1' versionName='1.0' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
