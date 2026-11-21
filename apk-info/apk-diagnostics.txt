@@ -1,4 +1,7 @@
 ### Хвост лога сборки gradle
+> Task :app:assembleDebug
+> Task :capacitor-android:syncDebugLibJars
+> Task :capacitor-android:bundleDebugAar
 > Task :capacitor-android:assembleDebug
 > Task :capacitor-community-text-to-speech:stripDebugDebugSymbols NO-SOURCE
 > Task :capacitor-community-text-to-speech:copyDebugJniLibsProjectAndLocalJars
@@ -9,13 +12,10 @@
 > Task :capacitor-community-text-to-speech:prepareDebugArtProfile
 > Task :capacitor-community-text-to-speech:prepareLintJarForPublish
 > Task :capacitor-community-text-to-speech:mergeDebugJavaResource
-> Task :app:packageDebug
-> Task :app:createDebugApkListingFileRedirect
-> Task :app:assembleDebug
+> Task :capacitor-cordova-android-plugins:checkDebugAarMetadata
 > Task :capacitor-community-text-to-speech:syncDebugLibJars
 > Task :capacitor-community-text-to-speech:bundleDebugAar
 > Task :capacitor-community-text-to-speech:assembleDebug
-> Task :capacitor-cordova-android-plugins:checkDebugAarMetadata
 > Task :capacitor-cordova-android-plugins:stripDebugDebugSymbols NO-SOURCE
 > Task :capacitor-cordova-android-plugins:copyDebugJniLibsProjectAndLocalJars
 > Task :capacitor-cordova-android-plugins:extractDebugAnnotations
@@ -57,13 +57,13 @@
 
 [Incubating] Problems report is available at: file:///home/runner/work/asutp-timer/asutp-timer/android/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 1m 23s
+BUILD SUCCESSFUL in 1m 56s
 184 actionable tasks: 184 executed
 
 ### Файл
--rw-r--r-- 1 runner runner 4605031 Nov 21 22:11 android/app/build/outputs/apk/debug/app-debug.apk
-sha256: a64f2685810fbc45970e6a796a6413f9cb4bd47d42e84d768e42276f62231804
-байт:   4605031
+-rw-r--r-- 1 runner runner 4605095 Nov 21 22:17 android/app/build/outputs/apk/debug/app-debug.apk
+sha256: 97894c4723a7fdc7874fed4628667d580425178fee6b70e77f537a32229539f5
+байт:   4605095
 
 ### Целостность архива
     testing: org/apache/cordova/allowlist/index.html   OK
@@ -72,9 +72,9 @@ No errors detected in compressed data of android/app/build/outputs/apk/debug/app
 
 ### Подпись
 V2 Signer: certificate DN: C=US, O=Android, CN=Android Debug
-V2 Signer: certificate SHA-256 digest: 0c7bac9afe7f68cff97d06749aed7e0cc4f9063695da264f498028f75b6fcea8
-V2 Signer: certificate SHA-1 digest: 5bd9fb91e9d7cecafa16e06127bb399ac9f3a16e
-V2 Signer: certificate MD5 digest: aa7359146a3087606925cdde0062045b
+V2 Signer: certificate SHA-256 digest: 50dde3f2fab6ddadc2a01a54d4fd35cb86e3a61e16a79e8e46262060e3fe6a42
+V2 Signer: certificate SHA-1 digest: e64ef0edd34da75a71291098511eb0b21b8c57e5
+V2 Signer: certificate MD5 digest: fb37767ed4f9513a14b439c04f51e5d1
 
 ### badging (пакет, версии, разрешения)
 package: name='com.asutp.timer' versionCode='1' versionName='1.0' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
@@ -126,7 +126,7 @@ application-label-fi:'ASUTP Timer'
     17076  1981-01-01 01:01   assets/public/js/native.js
      4671  1981-01-01 01:01   assets/public/js/scheduler.js
      9761  1981-01-01 01:01   assets/public/js/settings.js
-    10231  1981-01-01 01:01   assets/public/js/shift.js
+    10399  1981-01-01 01:01   assets/public/js/shift.js
      4563  1981-01-01 01:01   assets/public/js/state.js
      9690  1981-01-01 01:01   assets/public/js/swipe.js
      7705  1981-01-01 01:01   assets/public/js/templates.js
@@ -142,16 +142,16 @@ application-label-fi:'ASUTP Timer'
 
 ### Где лежит debug.keystore (нужно для кэша ключей)
 total 12
-drwxr-xr-x  2 runner runner 4096 Nov 21 22:10 .
-drwxr-x--- 16 runner runner 4096 Nov 21 22:11 ..
--rw-r--r--  1 runner runner  127 Nov 21 22:10 analytics.settings
+drwxr-xr-x  2 runner runner 4096 Nov 21 22:16 .
+drwxr-x--- 16 runner runner 4096 Nov 21 22:16 ..
+-rw-r--r--  1 runner runner  127 Nov 21 22:16 analytics.settings
 /home/runner/.config/.android/debug.keystore
 
 
 ### Ошибки сборки gradle (если есть)
 
 ### Итоговый (merged) AndroidManifest.xml
-# android/app/build/intermediates/merged_manifest/debug/processDebugMainManifest/AndroidManifest.xml
+# android/app/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.asutp.timer"
