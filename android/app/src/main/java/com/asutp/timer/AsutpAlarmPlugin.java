@@ -41,6 +41,7 @@ public class AsutpAlarmPlugin extends Plugin {
     private static final String TAG = "AsutpAlarm";
     private static final String PREFS = "asutp_alarm";
     private static final String KEY_IDS = "ids";
+    private static final String KEY_TIMES = "times";
 
     private static AsutpAlarmPlugin instance;
 
@@ -87,6 +88,16 @@ public class AsutpAlarmPlugin extends Plugin {
             int scheduled = 0;
             boolean first = true;
 
+            // Уже запланированные будильники не трогаем: пересоздание будильника
+            // сдвигает его в очереди Doze, и тревога приходит с задержкой.
+            SharedPreferences prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+            JSObject prev;
+            try {
+                prev = new JSObject(prefs.getString(KEY_TIMES, "{}"));
+            } catch (JSONException e) {
+                prev = new JSObject();
+            }
+
             for (int i = 0; i < items.size(); i++) {
                 JSONObject it = items.get(i);
                 long at = it.optLong("atMs");
@@ -94,6 +105,16 @@ public class AsutpAlarmPlugin extends Plugin {
                     continue;   // прошедшие события не планируем
                 }
                 int id = it.optInt("id", i + 1);
+                String key = String.valueOf(id);
+
+                if (prev.optLong(key, -1L) == at) {
+                    // Время не изменилось — будильник уже стоит, не пересоздаём
+                    if (ids.length() > 0) ids.append(",");
+                    ids.append(id);
+                    scheduled++;
+                    continue;
+                }
+
                 PendingIntent pi = alarmPendingIntent(id, it.toString());
 
                 if (first) {
@@ -111,9 +132,31 @@ public class AsutpAlarmPlugin extends Plugin {
                 scheduled++;
             }
 
+            // Будильники, которых больше нет в расписании, снимаем
+            for (int i = 0; i < prev.length(); i++) {
+                String key = prev.optString(i, "");
+                if (key.isEmpty()) continue;
+                if (ids.indexOf(key) >= 0) continue;
+                int oldId;
+                try {
+                    oldId = Integer.parseInt(key);
+                } catch (Exception e) {
+                    continue;
+                }
+                Intent i2 = new Intent(ctx, AsutpAlarmReceiver.class);
+                i2.setAction(AsutpAlarmReceiver.ACTION_ALARM);
+                PendingIntent old = PendingIntent.getBroadcast(ctx, oldId, i2,
+                        PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE);
+                if (old != null) {
+                    am.cancel(old);
+                    old.cancel();
+                }
+            }
+
             ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                     .edit()
                     .putString(KEY_IDS, ids.toString())
+                    .putString(KEY_TIMES, timesJson(items))
                     .apply();
             AsutpAlarmReceiver.ensureChannel(ctx);
 
@@ -122,6 +165,16 @@ public class AsutpAlarmPlugin extends Plugin {
             Log.e(TAG, "scheduleAlerts: " + e.getMessage());
             call.reject("Ошибка планирования: " + e.getMessage());
         }
+    }
+
+    /** id → время, для сравнения при следующей пересборке расписания. */
+    private String timesJson(List<JSONObject> items) {
+        JSObject o = new JSObject();
+        for (int i = 0; i < items.size(); i++) {
+            JSONObject it = items.get(i);
+            o.put(String.valueOf(it.optInt("id", i + 1)), it.optLong("atMs"));
+        }
+        return o.toString();
     }
 
     @PluginMethod
