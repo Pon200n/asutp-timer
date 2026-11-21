@@ -117,6 +117,7 @@ jobs:
       # можно сразу ставить на телефон через adb — без облачной проверки MIUI.
       # Идёт ДО публикации отчёта: лог работы попадёт в apk-info/ и его будет видно.
       - name: Publish rolling release with APK
+        if: always()
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -126,6 +127,7 @@ jobs:
       # Отчёт публикуется скриптом: создаёт файлы, если их нет, и обновляет
       # существующие (обычный push не проходит, force-push переписывает историю).
       - name: Publish diagnostics to build-info branch
+        if: always()
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
