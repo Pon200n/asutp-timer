@@ -23,9 +23,27 @@ public class AlarmSound {
     private static MediaPlayer player;
     private static Vibrator vibrator;
 
+    /**
+     * Тревога подтверждена — зуммер запускаться не должен.
+     * Нужно, потому что зуммер стартует по окончании голоса: если подтвердить
+     * тревогу, пока голос ещё идёт, зуммер включился бы уже после подтверждения.
+     */
+    private static boolean suppressed = false;
+
+    /** Запретить запуск зуммера (тревога подтверждена). */
+    public static synchronized void suppress() {
+        suppressed = true;
+    }
+
+    /** Сбросить запрет — пришла новая тревога. */
+    public static synchronized void reset() {
+        suppressed = false;
+    }
+
     /** Запустить бесконечный цикл зуммера и вибрации (до подтверждения). */
     public static synchronized void start(Context ctx) {
         if (player != null) return;   // уже играет — не перезапускаем
+        if (suppressed) return;        // тревога уже подтверждена — не включаем
         stop(ctx);
         try {
             AudioAttributes attrs = new AudioAttributes.Builder()

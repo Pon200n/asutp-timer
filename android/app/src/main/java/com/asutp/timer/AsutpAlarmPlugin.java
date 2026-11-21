@@ -249,7 +249,10 @@ public class AsutpAlarmPlugin extends Plugin {
 
     @PluginMethod
     public void ackAlarm(PluginCall call) {
+        // Подтверждение: зуммер больше не запустится, даже если голос ещё идёт
+        AlarmSound.suppress();
         AlarmSound.stop(getContext());
+        AsutpVoice.stop();
         call.resolve();
     }
 

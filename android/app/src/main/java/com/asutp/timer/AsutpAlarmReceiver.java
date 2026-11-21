@@ -52,8 +52,12 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
         String action = intent.getAction();
 
         if (ACTION_ACK.equals(action)) {
-            // Нажата кнопка «ПРИНЯТО / ДАЛЕЕ» на уведомлении
+            // Нажата кнопка «ПРИНЯТО / ДАЛЕЕ» на уведомлении.
+            // Запрещаем запуск зуммера: он стартует по окончании голоса, и без
+            // этого запрета включился бы уже после подтверждения.
+            AlarmSound.suppress();
             AlarmSound.stop(ctx);
+            AsutpVoice.stop();
             try {
                 NotificationManagerCompat.from(ctx).cancel(NOTIFICATION_ID);
             } catch (Exception e) {
@@ -95,6 +99,7 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
         // ТЗ п.5.3: сначала однократно озвучивается текст события,
         // затем в бесконечном цикле идёт резкий зуммер.
         // Если бы одновременно — громкий зуммер заглушал бы голос.
+        AlarmSound.reset();   // новая тревога — снимаем запрет от прошлой
         final Context fctx = ctx;
         String voice = "";
         try {
