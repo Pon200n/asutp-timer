@@ -1,5 +1,7 @@
 ### Файл
--rw-r--r-- 1 runner runner 4586141 Nov 21 18:10 android/app/build/outputs/apk/debug/app-debug.apk
+-rw-r--r-- 1 runner runner 4586125 Nov 21 18:17 android/app/build/outputs/apk/debug/app-debug.apk
+sha256: ddf18c4d7b134f98a7a125263b0bac7a73f7fd1553497c230054eb85e48128c0
+байт:   4586125
 
 ### Целостность архива
     testing: org/apache/cordova/allowlist/index.html   OK
@@ -8,9 +10,9 @@ No errors detected in compressed data of android/app/build/outputs/apk/debug/app
 
 ### Подпись
 V2 Signer: certificate DN: C=US, O=Android, CN=Android Debug
-V2 Signer: certificate SHA-256 digest: 0ca290d69674a9a577287690c8ed822423a9a9d896e974092ab3a547c2d60ac3
-V2 Signer: certificate SHA-1 digest: 30afec10aab614a885c6579c9aca7ecb61f3c0db
-V2 Signer: certificate MD5 digest: 2540c875505e1bbbf8c5e099f251f2fd
+V2 Signer: certificate SHA-256 digest: aa73839ff52196244d2730a51d6b58c5d7911d777a77faa410860acf2499c1b0
+V2 Signer: certificate SHA-1 digest: d95b747631a26200c6aeb7333983f2b62f9c16b6
+V2 Signer: certificate MD5 digest: 5763238561e2c9b24ba97da2740d0761
 
 ### badging (пакет, версии, разрешения)
 package: name='com.asutp.timer' versionCode='1' versionName='1.0' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
@@ -19,7 +21,6 @@ targetSdkVersion:'36'
 uses-permission: name='android.permission.INTERNET'
 uses-permission: name='android.permission.POST_NOTIFICATIONS'
 uses-permission: name='android.permission.SCHEDULE_EXACT_ALARM'
-uses-permission: name='android.permission.USE_EXACT_ALARM'
 uses-permission: name='android.permission.USE_FULL_SCREEN_INTENT'
 uses-permission: name='android.permission.WAKE_LOCK'
 uses-permission: name='android.permission.VIBRATE'
@@ -53,6 +54,7 @@ application-label-et:'ASUTP Timer'
 application-label-eu:'ASUTP Timer'
 application-label-fa:'ASUTP Timer'
 application-label-fi:'ASUTP Timer'
+application-label-fr:'ASUTP Timer'
 
 ### Веб-ресурсы и звуки внутри APK
     15588  1981-01-01 01:01   assets/public/index.html
@@ -94,7 +96,12 @@ application-label-fi:'ASUTP Timer'
     <!-- Уведомления и точные будильники -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <!--
+     USE_EXACT_ALARM не используем: это разрешение существует только с Android 13,
+     выдаётся автоматически и блокирует публикацию в Google Play. Точность
+     будильников обеспечивает SCHEDULE_EXACT_ALARM (на Android 12+ пользователь
+     выдаёт его один раз в настройках — приложение проверяет это при старте).
+    -->
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
     <!-- Работа в фоне, пробуждение и вибрация -->
