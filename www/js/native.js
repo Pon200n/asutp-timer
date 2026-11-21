@@ -82,7 +82,11 @@ App.Native = {
     }.bind(this));
 
     step('foregroundService', function () {
-      if (this.cap.registerPlugin && has('ForegroundService')) {
+      // Плагины из www/vendor уже зарегистрированы их скриптами — второй раз
+      // registerPlugin ругается в консоль. Берём готовый прокси.
+      if (this.cap.Plugins.ForegroundService) {
+        this.fgs = this.cap.Plugins.ForegroundService;
+      } else if (this.cap.registerPlugin && has('ForegroundService')) {
         this.fgs = this.cap.registerPlugin('ForegroundService');
       }
     }.bind(this));
