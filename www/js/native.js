@@ -285,7 +285,7 @@ App.Native = {
       id: this.FGS_CHANNEL,
       name: 'Смена АСУТП',
       description: 'Текущая операция и обратный отсчёт',
-      importance: 3
+      importance: 4   // важно: Live-Bar должен быть виден в шторке, но без звука (silent: true)
     }).catch(function () {}).then(function () {
       return self.fgs.startForegroundService({
         id: App.Native.FGS_ID,
@@ -315,6 +315,22 @@ App.Native = {
   stopForegroundService: function () {
     if (!this.fgs) return Promise.resolve();
     return this.fgs.stopForegroundService().catch(function () {});
+  },
+
+  // ---------- ПОКАЗ ПОВЕРХ БЛОКИРОВКИ ----------
+  // MIUI не даёт activity открыться поверх экрана блокировки без разрешения
+  // «Отображение поверх других приложений» (SYSTEM_ALERT_WINDOW).
+  // Пользователь выдаёт его один раз в настройках приложения.
+  canShowOverLockScreen: function () {
+    if (!this.fgs || !this.fgs.checkManageOverlayPermission) return Promise.resolve(null);
+    return this.fgs.checkManageOverlayPermission()
+      .then(function (res) { return !!(res && res.granted); })
+      .catch(function () { return null; });
+  },
+
+  requestOverlayPermission: function () {
+    if (!this.fgs || !this.fgs.requestManageOverlayPermission) return Promise.resolve();
+    return this.fgs.requestManageOverlayPermission().catch(function () {});
   },
 
   // ---------- ГОЛОС ----------

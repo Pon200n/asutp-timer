@@ -104,44 +104,14 @@ jobs:
           REPO: ${{ github.repository }}
         run: node tools/publish-release.js
 
-      # Отчёт публикуется обновлением файла через API — без переписывания
-      # истории ветки build-info (обычный push не пройдёт: файл меняется каждый раз)
+      # Отчёт публикуется скриптом: создаёт файлы, если их нет, и обновляет
+      # существующие (обычный push не проходит, force-push переписывает историю).
       - name: Publish diagnostics to build-info branch
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-        run: |
-          SHA=$(curl -sS -H "Authorization: Bearer $GH_TOKEN" \
-            "https://api.github.com/repos/$REPO/contents/apk-info/apk-diagnostics.txt?ref=build-info" \
-            | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{console.log(JSON.parse(d).sha||'')}catch(e){console.log('')}})")
-          if [ -z "$SHA" ]; then
-            echo "Файл отчёта на build-info не найден — публикация пропущена"
-            exit 0
-          fi
-          CONTENT=$(base64 -w0 apk-info/apk-diagnostics.txt)
-          curl -sS -X PUT \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/$REPO/contents/apk-info/apk-diagnostics.txt" \
-            -d "{\"message\":\"APK diagnostics\",\"content\":\"$CONTENT\",\"sha\":\"$SHA\",\"branch\":\"build-info\"}" \
-            | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);console.log(j.commit?('отчёт обновлён: '+j.commit.html_url):('ошибка: '+JSON.stringify(j).slice(0,200)))})"
-
-          # лог публикации релиза — отдельным файлом, чтобы видеть причину сбоя
-          if [ -f apk-info/release-publish.log ]; then
-            LSHA=$(curl -sS -H "Authorization: Bearer $GH_TOKEN" \
-              "https://api.github.com/repos/$REPO/contents/apk-info/release-publish.log?ref=build-info" \
-              | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{console.log(JSON.parse(d).sha||'')}catch(e){console.log('')}})")
-            if [ -n "$LSHA" ]; then
-              LCONTENT=$(base64 -w0 apk-info/release-publish.log)
-              curl -sS -X PUT \
-                -H "Authorization: Bearer $GH_TOKEN" \
-                -H "Accept: application/vnd.github+json" \
-                "https://api.github.com/repos/$REPO/contents/apk-info/release-publish.log" \
-                -d "{\"message\":\"release publish log\",\"content\":\"$LCONTENT\",\"sha\":\"$LSHA\",\"branch\":\"build-info\"}" \
-                | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);console.log(j.commit?'лог релиза обновлён':'лог релиза: ошибка '+JSON.stringify(j).slice(0,150))})"
-            fi
-          fi
+        run: node tools/publish-report.js
 
       # Артефакт отдаём обычным ZIP-архивом: внутри — app-debug.apk.
       - name: Upload APK

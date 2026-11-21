@@ -124,6 +124,29 @@ App.Settings = {
       this.checkExactAlarms();
       return;
     }
+    if (t.id === 'btnOverlayPerm') {
+      this.checkOverlayPermission();
+      return;
+    }
+  },
+
+  // MIUI требует «Отображение поверх других приложений», иначе тревога
+  // не выводит приложение поверх экрана блокировки.
+  checkOverlayPermission: function () {
+    if (!App.Native || !App.Native.available) {
+      App.Toast.show('Доступно только в нативном приложении');
+      return;
+    }
+    App.Native.canShowOverLockScreen().then(function (granted) {
+      if (granted === true) {
+        App.Toast.show('Показ поверх блокировки разрешён');
+      } else if (granted === false) {
+        App.Toast.show('Включите «Отображение поверх других приложений»');
+        App.Native.requestOverlayPermission();
+      } else {
+        App.Toast.show('Не удалось проверить разрешение');
+      }
+    });
   },
 
   // Точные будильники — на Android 12+ это отдельное разрешение.

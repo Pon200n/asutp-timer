@@ -77,5 +77,9 @@
 <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+<!-- MIUI не даёт выйти поверх блокировки без этого разрешения:
+     в логах было "Show when locked PermissionDenied". Разрешение выдаётся
+     пользователем один раз в настройках приложения. -->
+<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
 </manifest>
