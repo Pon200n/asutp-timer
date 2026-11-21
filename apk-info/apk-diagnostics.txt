@@ -1,243 +1,64 @@
+### Хвост лога сборки gradle
+> Task :capacitor-local-notifications:mergeDebugShaders
+> Task :capacitor-local-notifications:compileDebugShaders NO-SOURCE
+> Task :capacitor-local-notifications:generateDebugAssets UP-TO-DATE
+> Task :capacitor-local-notifications:mergeDebugAssets
+> Task :capawesome-team-capacitor-android-foreground-service:mergeDebugShaders
+> Task :capawesome-team-capacitor-android-foreground-service:compileDebugShaders NO-SOURCE
+> Task :capawesome-team-capacitor-android-foreground-service:generateDebugAssets UP-TO-DATE
+> Task :capawesome-team-capacitor-android-foreground-service:mergeDebugAssets
+> Task :app:mergeDebugAssets
+> Task :capacitor-community-text-to-speech:bundleLibRuntimeToJarDebug
+> Task :capawesome-team-capacitor-android-foreground-service:bundleLibRuntimeToJarDebug
+> Task :app:compressDebugAssets
+> Task :capacitor-android:bundleLibRuntimeToJarDebug
+> Task :capacitor-cordova-android-plugins:bundleLibRuntimeToJarDebug
+> Task :app:desugarDebugFileDependencies
+> Task :app:processDebugJavaRes NO-SOURCE
+> Task :capacitor-android:processDebugJavaRes NO-SOURCE
+> Task :capacitor-community-text-to-speech:processDebugJavaRes NO-SOURCE
+> Task :capacitor-cordova-android-plugins:processDebugJavaRes NO-SOURCE
+> Task :capawesome-team-capacitor-android-foreground-service:processDebugJavaRes NO-SOURCE
+> Task :capacitor-community-text-to-speech:bundleLibRuntimeToDirDebug
+> Task :app:checkDebugDuplicateClasses
+> Task :capacitor-local-notifications:compileDebugKotlin
+> Task :capacitor-local-notifications:compileDebugJavaWithJavac NO-SOURCE
+> Task :capacitor-local-notifications:bundleLibCompileToJarDebug
+> Task :capacitor-local-notifications:bundleLibRuntimeToJarDebug
+> Task :capacitor-local-notifications:processDebugJavaRes
+
+> Task :app:compileDebugJavaWithJavac FAILED
+/home/runner/work/asutp-timer/asutp-timer/android/app/src/main/java/com/asutp/timer/AsutpAlarmPlugin.java:138: error: incompatible types: int cannot be converted to String
+                String key = prev.optString(i, "");
+                                            ^
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+1 error
+
+> Task :app:mergeExtDexDebug
+
+[Incubating] Problems report is available at: file:///home/runner/work/asutp-timer/asutp-timer/android/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileDebugJavaWithJavac'.
+> Compilation failed; see the compiler output below.
+  Note: Recompile with -Xlint:deprecation for details.
+  /home/runner/work/asutp-timer/asutp-timer/android/app/src/main/java/com/asutp/timer/AsutpAlarmPlugin.java:138: error: incompatible types: int cannot be converted to String
+                  String key = prev.optString(i, "");
+                                              ^
+  Note: Some input files use or override a deprecated API.
+  Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+  1 error
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights.
+
+BUILD FAILED in 1m 39s
+104 actionable tasks: 104 executed
+
 ### Файл
--rw-r--r-- 1 runner runner 4596605 Nov 21 19:37 android/app/build/outputs/apk/debug/app-debug.apk
-sha256: a20cf6e7553f9620645dc98af8a54b7825737dc5f346737fa1d0560886a88f73
-байт:   4596605
-
-### Целостность архива
-    testing: org/apache/cordova/allowlist/index.html   OK
-    testing: org/apache/cordova/allowlist/index2.html   OK
-No errors detected in compressed data of android/app/build/outputs/apk/debug/app-debug.apk.
-
-### Подпись
-V2 Signer: certificate DN: C=US, O=Android, CN=Android Debug
-V2 Signer: certificate SHA-256 digest: 418587fdf5e22ae59c9f4e1f779819620bc1d7977514969a75ef7cf60b519f29
-V2 Signer: certificate SHA-1 digest: 0d6675d331c12710854b248e564a0a6f738c3071
-V2 Signer: certificate MD5 digest: 650b30b583930ecacfc738731ceadcec
-
-### badging (пакет, версии, разрешения)
-package: name='com.asutp.timer' versionCode='1' versionName='1.0' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
-sdkVersion:'24'
-targetSdkVersion:'36'
-uses-permission: name='android.permission.INTERNET'
-uses-permission: name='android.permission.POST_NOTIFICATIONS'
-uses-permission: name='android.permission.SCHEDULE_EXACT_ALARM'
-uses-permission: name='android.permission.USE_FULL_SCREEN_INTENT'
-uses-permission: name='android.permission.WAKE_LOCK'
-uses-permission: name='android.permission.VIBRATE'
-uses-permission: name='android.permission.RECEIVE_BOOT_COMPLETED'
-uses-permission: name='android.permission.FOREGROUND_SERVICE'
-uses-permission: name='android.permission.FOREGROUND_SERVICE_SPECIAL_USE'
-uses-permission: name='com.asutp.timer.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'
-application-label:'ASUTP Timer'
-application-label-af:'ASUTP Timer'
-application-label-am:'ASUTP Timer'
-application-label-ar:'ASUTP Timer'
-application-label-as:'ASUTP Timer'
-application-label-az:'ASUTP Timer'
-application-label-be:'ASUTP Timer'
-application-label-bg:'ASUTP Timer'
-application-label-bn:'ASUTP Timer'
-application-label-bs:'ASUTP Timer'
-application-label-ca:'ASUTP Timer'
-application-label-cs:'ASUTP Timer'
-application-label-da:'ASUTP Timer'
-application-label-de:'ASUTP Timer'
-application-label-el:'ASUTP Timer'
-application-label-en-AU:'ASUTP Timer'
-application-label-en-CA:'ASUTP Timer'
-application-label-en-GB:'ASUTP Timer'
-application-label-en-IN:'ASUTP Timer'
-application-label-en-XC:'ASUTP Timer'
-application-label-es:'ASUTP Timer'
-application-label-es-US:'ASUTP Timer'
-application-label-et:'ASUTP Timer'
-application-label-eu:'ASUTP Timer'
-application-label-fa:'ASUTP Timer'
-application-label-fi:'ASUTP Timer'
-application-label-fr:'ASUTP Timer'
-
-### Веб-ресурсы и звуки внутри APK
-    15781  1981-01-01 01:01   assets/public/index.html
-    15286  1981-01-01 01:01   assets/public/js/alerts.js
-     1936  1981-01-01 01:01   assets/public/js/config.js
-     4949  1981-01-01 01:01   assets/public/js/locks.js
-    14075  1981-01-01 01:01   assets/public/js/native.js
-     4671  1981-01-01 01:01   assets/public/js/scheduler.js
-     8732  1981-01-01 01:01   assets/public/js/settings.js
-     9322  1981-01-01 01:01   assets/public/js/shift.js
-     4563  1981-01-01 01:01   assets/public/js/state.js
-     9690  1981-01-01 01:01   assets/public/js/swipe.js
-     7705  1981-01-01 01:01   assets/public/js/templates.js
-     1015  1981-01-01 01:01   assets/public/js/toast.js
-     4897  1981-01-01 01:01   assets/public/js/ui.js
-     2156  1981-01-01 01:01   assets/public/js/utils.js
-     8741  1981-01-01 01:01   assets/public/vendor/capacitor.js
-     1976  1981-01-01 01:01   assets/public/vendor/foreground-service.js
-    10613  1981-01-01 01:01   assets/public/vendor/local-notifications.js
-     4572  1981-01-01 01:01   assets/public/vendor/text-to-speech.js
-    48554  1981-01-01 01:01   res/raw/asutp_alarm.wav
-   308744  1981-01-01 01:01   res/raw/asutp_alarm_loop.wav
-
-### Итоговый (merged) AndroidManifest.xml
-# android/app/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.asutp.timer"
-    android:versionCode="1"
-    android:versionName="1.0" >
-
-    <uses-sdk
-        android:minSdkVersion="24"
-        android:targetSdkVersion="36" />
-
-    <!-- Permissions -->
-
-    <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Уведомления и точные будильники -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <!--
-     USE_EXACT_ALARM не используем: это разрешение существует только с Android 13,
-     выдаётся автоматически и блокирует публикацию в Google Play. Точность
-     будильников обеспечивает SCHEDULE_EXACT_ALARM (на Android 12+ пользователь
-     выдаёт его один раз в настройках — приложение проверяет это при старте).
-    -->
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
-
-    <!-- Работа в фоне, пробуждение и вибрация -->
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-
-    <queries>
-        <intent>
-            <action android:name="android.intent.action.TTS_SERVICE" />
-        </intent>
-    </queries>
-
-    <permission
-        android:name="com.asutp.timer.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-        android:protectionLevel="signature" />
-
-    <uses-permission android:name="com.asutp.timer.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
-
-    <application
-        android:allowBackup="true"
-        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
-        android:debuggable="true"
-        android:extractNativeLibs="false"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme" >
-        <activity
-            android:name="com.asutp.timer.MainActivity"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
-            android:exported="true"
-            android:label="@string/title_activity_main"
-            android:launchMode="singleTask"
-            android:screenOrientation="portrait"
-            android:showWhenLocked="true"
-            android:theme="@style/AppTheme.NoActionBarLaunch"
-            android:turnScreenOn="true" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="com.asutp.timer.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true" >
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
-        </provider>
-
-        <!--
-             Foreground Service (@capawesome-team/capacitor-android-foreground-service).
-             Служба и ресивер НЕ объявлены в манифесте самого плагина —
-             без этих строк фоновая служба не запустится.
-        -->
-        <service
-            android:name="io.capawesome.capacitorjs.plugins.foregroundservice.AndroidForegroundService"
-            android:exported="false"
-            android:foregroundServiceType="specialUse" >
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Системные будильники смены АСУТП: постоянное уведомление с текущей операцией и обратным отсчётом" />
-        </service>
-
-        <receiver
-            android:name="io.capawesome.capacitorjs.plugins.foregroundservice.NotificationActionBroadcastReceiver"
-            android:exported="false" />
-
-        <!-- Системные будильники смены (AlarmManager → полноэкранное уведомление) -->
-        <receiver
-            android:name="com.asutp.timer.AsutpAlarmReceiver"
-            android:exported="false" />
-        <receiver android:name="com.capacitorjs.plugins.localnotifications.TimedNotificationPublisher" />
-        <receiver android:name="com.capacitorjs.plugins.localnotifications.NotificationDismissReceiver" />
-        <receiver
-            android:name="com.capacitorjs.plugins.localnotifications.LocalNotificationRestoreReceiver"
-            android:directBootAware="true"
-            android:exported="false" >
-            <intent-filter>
-                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-            </intent-filter>
-        </receiver>
-
-        <provider
-            android:name="com.capacitorjs.plugins.localnotifications.LocalNotificationsAssetProvider"
-            android:authorities="com.asutp.timer.localnotifications.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true" >
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/localnotifications_provider_paths" />
-        </provider>
-        <provider
-            android:name="androidx.startup.InitializationProvider"
-            android:authorities="com.asutp.timer.androidx-startup"
-            android:exported="false" >
-            <meta-data
-                android:name="androidx.emoji2.text.EmojiCompatInitializer"
-                android:value="androidx.startup" />
-            <meta-data
-                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
-                android:value="androidx.startup" />
-            <meta-data
-                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
-                android:value="androidx.startup" />
-        </provider>
-
-        <receiver
-            android:name="androidx.profileinstaller.ProfileInstallReceiver"
-            android:directBootAware="false"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="android.permission.DUMP" >
-            <intent-filter>
-                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
-            </intent-filter>
-        </receiver>
-    </application>
-
-</manifest>
+ls: cannot access 'android/app/build/outputs/apk/debug/app-debug.apk': No such file or directory
