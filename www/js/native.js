@@ -336,19 +336,37 @@ App.Native = {
   // ---------- ГОЛОС ----------
 
   speak: function (text) {
-    if (!this.tts || !text) return Promise.resolve();
+    if (!text) return Promise.resolve();
     const s = (App.State && App.State.settings) || {};
+    const pitch = s.voicePitch || 1.35;
+    const rate = s.voiceRate || 1.03;
+
+    // Наш нативный голос: USAGE_ALARM — слышен в беззвучном режиме.
+    // Обычный TTS играет по медиапотоку и в тишине полностью глушится.
+    if (this.alarmAvailable) {
+      return this.alarm.speak({ text: text, pitch: pitch, rate: rate })
+        .catch(function () {
+          return App.Native.speakFallback(text, pitch, rate);
+        });
+    }
+    return this.speakFallback(text, pitch, rate);
+  },
+
+  speakFallback: function (text, pitch, rate) {
+    if (!this.tts) return Promise.resolve();
     return this.tts.speak({
       text: text,
       lang: 'ru-RU',
-      pitch: s.voicePitch || 1.35,
-      rate: s.voiceRate || 1.03,
+      pitch: pitch,
+      rate: rate,
       queueStrategy: 0   // Flush — новая фраза прерывает предыдущую
     }).catch(function () {});
   },
 
   stopSpeak: function () {
-    if (!this.tts) return Promise.resolve();
-    return this.tts.stop().catch(function () {});
+    const jobs = [];
+    if (this.alarmAvailable) jobs.push(this.alarm.stopSpeak().catch(function () {}));
+    if (this.tts) jobs.push(this.tts.stop().catch(function () {}));
+    return Promise.all(jobs);
   }
 };

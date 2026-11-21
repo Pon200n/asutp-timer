@@ -196,6 +196,31 @@ public class AsutpAlarmPlugin extends Plugin {
         call.resolve();
     }
 
+    // ---------- ГОЛОС ТРЕВОГИ ----------
+
+    /**
+     * Озвучивание текста тревоги голосом с USAGE_ALARM —
+     * в отличие от обычного TTS, он слышен в беззвучном режиме.
+     */
+    @PluginMethod
+    public void speak(PluginCall call) {
+        String text = call.getString("text");
+        if (text == null || text.trim().isEmpty()) {
+            call.resolve();
+            return;
+        }
+        Float pitch = call.getFloat("pitch", 1.35f);
+        Float rate = call.getFloat("rate", 1.03f);
+        AsutpVoice.speak(getContext(), text, pitch, rate);
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void stopSpeak(PluginCall call) {
+        AsutpVoice.stop();
+        call.resolve();
+    }
+
     // ---------- РАЗРЕШЕНИЕ НА ПОЛНОЭКРАННЫЕ УВЕДОМЛЕНИЯ ----------
 
     @PluginMethod
