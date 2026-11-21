@@ -56,6 +56,8 @@ jobs:
           {
             echo "### Файл"
             ls -la "$APK"
+            echo "sha256: $(sha256sum "$APK" | cut -d' ' -f1)"
+            echo "байт:   $(stat -c%s "$APK")"
             echo
             echo "### Целостность архива"
             unzip -t "$APK" | tail -3
@@ -90,15 +92,28 @@ jobs:
           } > apk-info/apk-diagnostics.txt 2>&1
           cat apk-info/apk-diagnostics.txt
 
+      # Отчёт публикуется обновлением файла через API — без переписывания
+      # истории ветки build-info (обычный push не пройдёт: файл меняется каждый раз)
       - name: Publish diagnostics to build-info branch
         continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
         run: |
-          git config user.name "ci"
-          git config user.email "ci@users.noreply.github.com"
-          git checkout -B build-info
-          git add -f apk-info/apk-diagnostics.txt
-          git commit -m "APK diagnostics" || true
-          git push --force origin build-info
+          SHA=$(curl -sS -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/$REPO/contents/apk-info/apk-diagnostics.txt?ref=build-info" \
+            | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{console.log(JSON.parse(d).sha||'')}catch(e){console.log('')}})")
+          if [ -z "$SHA" ]; then
+            echo "Файл отчёта на build-info не найден — публикация пропущена"
+            exit 0
+          fi
+          CONTENT=$(base64 -w0 apk-info/apk-diagnostics.txt)
+          curl -sS -X PUT \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$REPO/contents/apk-info/apk-diagnostics.txt" \
+            -d "{\"message\":\"APK diagnostics\",\"content\":\"$CONTENT\",\"sha\":\"$SHA\",\"branch\":\"build-info\"}" \
+            | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);console.log(j.commit?('отчёт обновлён: '+j.commit.html_url):('ошибка: '+JSON.stringify(j).slice(0,200)))})"
 
       # Артефакт отдаём обычным ZIP-архивом (как в сборках #4/#5, которые
       # успешно ставились): внутри — app-debug.apk. Без архива файл приходит

@@ -60,7 +60,10 @@
     <!-- Уведомления и точные будильники -->
 <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-<uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+<!-- USE_EXACT_ALARM не используем: это разрешение существует только с Android 13,
+     выдаётся автоматически и блокирует публикацию в Google Play. Точность
+     будильников обеспечивает SCHEDULE_EXACT_ALARM (на Android 12+ пользователь
+     выдаёт его один раз в настройках — приложение проверяет это при старте). -->
 <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
 <!-- Работа в фоне, пробуждение и вибрация -->
