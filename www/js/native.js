@@ -267,9 +267,11 @@ App.Native = {
 
   pollPendingAlarm: function () {
     if (!this.alarmAvailable) return;
-    this.alarm.getPendingAlarm().then(function (data) {
-      if (data && data.id !== undefined && data.id !== null) {
-        if (App.Alerts) App.Alerts.onNativeAlarm(data);
+    this.alarm.getPendingAlarm().then(function (res) {
+      const list = (res && res.alerts) || [];
+      // Очередь оповещений: показываем строго по порядку
+      for (let i = 0; i < list.length; i++) {
+        if (App.Alerts) App.Alerts.onNativeAlarm(list[i]);
       }
     }).catch(function () {});
   },

@@ -228,17 +228,26 @@ public class AsutpAlarmPlugin extends Plugin {
     public void getPendingAlarm(PluginCall call) {
         try {
             Context ctx = getContext();
-            String payload = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                    .getString(AsutpAlarmReceiver.KEY_PENDING, null);
-            if (payload == null) {
-                call.resolve(new JSObject());
-                return;
+            SharedPreferences prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+            String raw = prefs.getString(AsutpAlarmReceiver.KEY_PENDING, "[]");
+            org.json.JSONArray queue;
+            try {
+                queue = new org.json.JSONArray(raw);
+            } catch (JSONException e) {
+                queue = new org.json.JSONArray();
             }
-            ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                    .edit()
-                    .remove(AsutpAlarmReceiver.KEY_PENDING)
-                    .apply();
-            call.resolve(parsePayload(payload));
+            prefs.edit().remove(AsutpAlarmReceiver.KEY_PENDING).apply();
+
+            // Возвращаем всю очередь: оповещения пары должны попасть в JS по порядку
+            JSArray out = new JSArray();
+            for (int i = 0; i < queue.length(); i++) {
+                JSONObject o = queue.optJSONObject(i);
+                if (o == null) continue;
+                out.put(parsePayload(o.toString()));
+            }
+            JSObject res = new JSObject();
+            res.put("alerts", out);
+            call.resolve(res);
         } catch (Exception e) {
             Log.e(TAG, "getPendingAlarm: " + e.getMessage());
             call.reject("Ошибка чтения события: " + e.getMessage());

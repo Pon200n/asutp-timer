@@ -60,17 +60,30 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
             AlarmSound.suppress();
             AlarmSound.stop(ctx);
             AsutpVoice.stop();
+            int ackId = intent.getIntExtra(EXTRA_ID, 0);
             try {
                 NotificationManagerCompat.from(ctx).cancel(NOTIFICATION_ID);
             } catch (Exception e) {
                 Log.e(TAG, "не удалось снять уведомление: " + e.getMessage());
             }
-            // Событие считаем подтверждённым — опрос не должен показать его снова
+            // Событие считаем подтверждённым — убираем его из очереди,
+            // следующее (если оно есть) остаётся ждать подтверждения
             try {
-                ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                        .edit()
-                        .remove(KEY_PENDING)
-                        .apply();
+                SharedPreferences prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+                org.json.JSONArray queue;
+                try {
+                    queue = new org.json.JSONArray(prefs.getString(KEY_PENDING, "[]"));
+                } catch (JSONException e) {
+                    queue = new org.json.JSONArray();
+                }
+                org.json.JSONArray left = new org.json.JSONArray();
+                for (int i = 0; i < queue.length(); i++) {
+                    JSONObject o = queue.optJSONObject(i);
+                    if (o == null) continue;
+                    if (ackId > 0 && o.optInt("id", -1) == ackId) continue;  // подтверждённое
+                    left.put(o);
+                }
+                prefs.edit().putString(KEY_PENDING, left.toString()).apply();
             } catch (Exception e) {
                 Log.e(TAG, "не удалось снять отметку события: " + e.getMessage());
             }
@@ -84,10 +97,17 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
         if (payload == null) payload = "{}";
 
         try {
-            ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                    .edit()
-                    .putString(KEY_PENDING, payload)
-                    .apply();
+            // Очередь, а не один слот: два оповещения пары приходят за ~70 мс,
+            // и при перезапуске процесса второе не должно вытеснять первое.
+            SharedPreferences prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+            org.json.JSONArray queue;
+            try {
+                queue = new org.json.JSONArray(prefs.getString(KEY_PENDING, "[]"));
+            } catch (JSONException e) {
+                queue = new org.json.JSONArray();
+            }
+            queue.put(new JSONObject(payload));
+            prefs.edit().putString(KEY_PENDING, queue.toString()).apply();
         } catch (Exception e) {
             Log.e(TAG, "не удалось сохранить событие: " + e.getMessage());
         }
