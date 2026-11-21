@@ -8,8 +8,8 @@
 > Task :capawesome-team-capacitor-android-foreground-service:generateDebugAssets UP-TO-DATE
 > Task :capawesome-team-capacitor-android-foreground-service:mergeDebugAssets
 > Task :app:mergeDebugAssets
-> Task :capacitor-community-text-to-speech:bundleLibRuntimeToJarDebug
 > Task :capawesome-team-capacitor-android-foreground-service:bundleLibRuntimeToJarDebug
+> Task :capacitor-community-text-to-speech:bundleLibRuntimeToJarDebug
 > Task :app:compressDebugAssets
 > Task :capacitor-android:bundleLibRuntimeToJarDebug
 > Task :capacitor-cordova-android-plugins:bundleLibRuntimeToJarDebug
@@ -29,7 +29,7 @@
 
 > Task :app:compileDebugJavaWithJavac FAILED
 /home/runner/work/asutp-timer/asutp-timer/android/app/src/main/java/com/asutp/timer/AsutpAlarmPlugin.java:138: error: incompatible types: int cannot be converted to String
-                String key = prev.optString(i, "");
+                String key = prev.optString(i);
                                             ^
 Note: Some input files use or override a deprecated API.
 Note: Recompile with -Xlint:deprecation for details.
@@ -47,7 +47,7 @@ Execution failed for task ':app:compileDebugJavaWithJavac'.
 > Compilation failed; see the compiler output below.
   Note: Recompile with -Xlint:deprecation for details.
   /home/runner/work/asutp-timer/asutp-timer/android/app/src/main/java/com/asutp/timer/AsutpAlarmPlugin.java:138: error: incompatible types: int cannot be converted to String
-                  String key = prev.optString(i, "");
+                  String key = prev.optString(i);
                                               ^
   Note: Some input files use or override a deprecated API.
   Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
@@ -57,7 +57,7 @@ Execution failed for task ':app:compileDebugJavaWithJavac'.
 > Check your code and dependencies to fix the compilation error(s)
 > Run with --scan to get full insights.
 
-BUILD FAILED in 1m 39s
+BUILD FAILED in 1m 43s
 104 actionable tasks: 104 executed
 
 ### Файл
