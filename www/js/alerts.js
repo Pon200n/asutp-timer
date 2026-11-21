@@ -8,6 +8,9 @@ App.Alerts = {
   queue: [],
   currentAlert: null,
   isShowing: false,
+  // Какие тревоги уже показаны/подтверждены (id из buildAlerts).
+  // Нужно, чтобы системное уведомление и внутренний таймер не дублировали друг друга.
+  handled: {},
 
   // ---------- ИНИЦИАЛИЗАЦИЯ ----------
   init: function () {
@@ -53,9 +56,19 @@ App.Alerts = {
 
   // ---------- ГОЛОС ----------
   speak: function (text) {
+    if (!text) return;
+    if (App.State.settings.voiceMode === 'signal') return;
+
+    // Нативный синтез — работает при погашенном экране (в WebView speechSynthesis
+    // на Android вообще не работает).
+    if (App.Native && App.Native.available && App.Native.tts) {
+      App.Native.speak(text);
+      return;
+    }
+
+    // Браузерный запасной вариант (веб-прототип).
     try {
       if (!window.speechSynthesis) return;
-      if (App.State.settings.voiceMode === 'signal') return;
       window.speechSynthesis.cancel();
       const utt = new SpeechSynthesisUtterance(text);
       utt.lang = 'ru-RU';
@@ -109,14 +122,32 @@ App.Alerts = {
     try { if (navigator.vibrate) navigator.vibrate([400, 150, 400, 150, 600]); } catch (e) {}
   },
 
-  // ---------- ОЧЕРЕДЬ СОБЫТИЙ ----------
-  // ev — событие из scheduler, idx — его индекс в App.Shift.events
-  fireAlarm: function (ev, idx) {
-    if (!ev) return;
-    const all  = App.Shift.events || [];
+  // ---------- ПОСТРОЕНИЕ ТРЕВОГ ----------
+  // Единый источник правды: и экран тревоги, и системное уведомление
+  // строятся из одних и тех же объектов, поэтому тексты не разъезжаются.
+  //
+  // id тревоги: 11 + индексСобытия*10 + номерТревогиВСобытии.
+  // Старт смены имеет id 1 — не пересекается с событиями (11, 12, 21, ...).
+  // id нужен, чтобы уведомление и внутренний таймер не дублировали друг друга.
+  buildAlerts: function (ev, idx, events) {
+    const all = events || (App.Shift.events || []);
     const next = all[idx + 1] || null;
     const prev = all[idx - 1] || null;
     const isPartial = String(ev.label || '').indexOf('(часть') !== -1;
+    const out = [];
+
+    const push = function (k, title, text, kind, mode) {
+      out.push({
+        id: 11 + idx * 10 + k,
+        atMs: ev.endMs,
+        title: title,
+        text: text,
+        kind: kind,
+        mode: mode,
+        eventIdx: idx,
+        chainIdx: ev.chainIdx
+      });
+    };
 
     // --- Конец операции ---
     if (ev.type === 'op') {
@@ -124,58 +155,128 @@ App.Alerts = {
         // Операция разорвана перерывом — «операция закончилась» НЕ говорим,
         // только оповещаем о начале перерыва
         if (next && next.type === 'break_start') {
-          this.enqueue({
-            title: 'ПЕРЕРЫВ // ПАУЗА',
-            text:  'НАЧАЛСЯ ПЕРЕРЫВ. Поставить на ПАУЗУ',
-            kind:  'break_start_text',
-            mode:  'break'
-          });
+          push(0, 'ПЕРЕРЫВ // ПАУЗА', 'НАЧАЛСЯ ПЕРЕРЫВ. Поставить на ПАУЗУ', 'break_start_text', 'break');
         }
-        return;
+        return out;
       }
       // Полное окончание операции
-      this.enqueue({
-        title: 'ВНИМАНИЕ // ОПЕРАЦИЯ',
-        text:  ev.label + ' ЗАКОНЧИЛАСЬ',
-        kind:  'op_finish',
-        mode:  'op'
-      });
+      push(0, 'ВНИМАНИЕ // ОПЕРАЦИЯ', ev.label + ' ЗАКОНЧИЛАСЬ', 'op_finish', 'op');
       // Переход к следующей операции — два отдельных оповещения (ТЗ п.5.1)
       if (next && next.type === 'op' && String(next.label || '').indexOf('(часть') === -1) {
-        this.enqueue({
-          title: 'ВНИМАНИЕ // НАЧАЛО',
-          text:  'НУЖНО НАЧАТЬ: ' + next.label,
-          kind:  'op_start',
-          mode:  'op'
-        });
+        push(1, 'ВНИМАНИЕ // НАЧАЛО', 'НУЖНО НАЧАТЬ: ' + next.label, 'op_start', 'op');
       }
-      return;
+      return out;
     }
 
     // --- Начало перерыва ---
     if (ev.type === 'break_start') {
       // Если перед этим была частичная операция — уже оповещено
       const prevIsPartial = prev && prev.type === 'op' && String(prev.label || '').indexOf('(часть') !== -1;
-      if (prevIsPartial) return;
-      this.enqueue({
-        title: 'ПЕРЕРЫВ // ПАУЗА',
-        text:  'НАЧАЛСЯ ПЕРЕРЫВ. Поставить на ПАУЗУ',
-        kind:  'break_start_text',
-        mode:  'break'
-      });
-      return;
+      if (prevIsPartial) return out;
+      push(0, 'ПЕРЕРЫВ // ПАУЗА', 'НАЧАЛСЯ ПЕРЕРЫВ. Поставить на ПАУЗУ', 'break_start_text', 'break');
+      return out;
     }
 
     // --- Конец перерыва ---
     if (ev.type === 'break_end') {
-      const frozenOp = (next && next.type === 'op') ? next.label : '';
-      this.enqueue({
-        title: 'ПЕРЕРЫВ ОКОНЧЕН',
-        text:  'ПЕРЕРЫВ ЗАКОНЧИЛСЯ. Снять с ПАУЗЫ: ' + frozenOp,
-        kind:  'break_end_text',
-        mode:  'break'
+      const frozenOp = (next && next.type === 'op') ? this.cleanLabel(next.label) : '';
+      push(0, 'ПЕРЕРЫВ ОКОНЧЕН', 'ПЕРЕРЫВ ЗАКОНЧИЛСЯ. Снять с ПАУЗЫ: ' + frozenOp, 'break_end_text', 'break');
+      return out;
+    }
+
+    return out;
+  },
+
+  // Убрать служебную приписку «(часть 2)» из названия операции
+  cleanLabel: function (label) {
+    return String(label || '').replace(/\s*\(часть\s*\d+\)\s*$/, '').trim();
+  },
+
+  // Полный список тревог смены — для планирования системных будильников.
+  buildShiftAlerts: function (events, startMs) {
+    const list = events || [];
+    const out = [];
+
+    // Старт смены
+    let firstOp = null;
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].type === 'op') { firstOp = list[i]; break; }
+    }
+    if (startMs && firstOp) {
+      out.push({
+        id: 1,
+        atMs: startMs,
+        // Старт «сейчас» (или пару минут назад) — оповещение нужно мгновенно,
+        // поэтому допускаем небольшую «опоздалость».
+        allowLateMs: 5 * 60 * 1000,
+        title: 'СМЕНА // СТАРТ',
+        text: 'СМЕНА НАЧАЛАСЬ. НУЖНО НАЧАТЬ: ' + this.cleanLabel(firstOp.label),
+        kind: 'op_start',
+        mode: 'op',
+        eventIdx: -1,
+        chainIdx: firstOp.chainIdx
       });
-      return;
+    }
+
+    for (let i = 0; i < list.length; i++) {
+      const a = this.buildAlerts(list[i], i, list);
+      for (let k = 0; k < a.length; k++) out.push(a[k]);
+    }
+    return out;
+  },
+
+  // ---------- ОЧЕРЕДЬ СОБЫТИЙ ----------
+  // ev — событие из scheduler, idx — его индекс в App.Shift.events
+  fireAlarm: function (ev, idx) {
+    const alerts = this.buildAlerts(ev, idx, App.Shift.events);
+    for (let i = 0; i < alerts.length; i++) this.enqueue(alerts[i]);
+  },
+
+  // Резервный путь: системное уведомление могло не дойти (запрет уведомлений,
+  // сбой плагина) — тогда показываем тревогу сами, но не раньше чем через 4 с,
+  // чтобы успеть прийти уведомлению.
+  armFallback: function (ev, idx, nowMs) {
+    const self = this;
+    const alerts = this.buildAlerts(ev, idx, App.Shift.events);
+    if (!alerts.length) return;
+    setTimeout(function () {
+      for (let i = 0; i < alerts.length; i++) {
+        const a = alerts[i];
+        if (self.handled[a.id]) continue;
+        self.handled[a.id] = true;
+        self.enqueue(a);
+      }
+    }, 4000);
+  },
+
+  // Системное уведомление доставлено — это сигнал тревоги.
+  onNativeAlarm: function (notification) {
+    if (!notification) return;
+    const extra = notification.extra || {};
+    const id = extra.alertId;
+    if (id === undefined || id === null) return;
+    if (this.handled[id]) return;              // уже показали или уже подтвердили
+    this.handled[id] = true;
+    this.enqueue({
+      id: id,
+      title: notification.title || 'ВНИМАНИЕ',
+      text: notification.body || '',
+      kind: extra.kind,
+      mode: extra.mode,
+      eventIdx: extra.eventIdx
+    });
+  },
+
+  // Нажата кнопка «ПРИНЯТО / ДАЛЕЕ» на уведомлении (экран блокировки или шторка).
+  onNativeAction: function (notification, action) {
+    const extra = (notification && notification.extra) || {};
+    const id = extra.alertId;
+    if (id !== undefined && id !== null) this.handled[id] = true;
+
+    if (this.isShowing && this.currentAlert) {
+      if (id === undefined || id === null || this.currentAlert.id === id) {
+        this.acknowledge();
+      }
     }
   },
 
@@ -239,6 +340,13 @@ App.Alerts = {
       if (window.speechSynthesis) window.speechSynthesis.cancel();
       if (navigator.vibrate) navigator.vibrate(0);
     } catch (e) {}
+    if (App.Native && App.Native.available) {
+      App.Native.stopSpeak();
+      // Убираем подтверждённое уведомление из шторки
+      if (this.currentAlert && this.currentAlert.id !== undefined) {
+        App.Native.cancelById(this.currentAlert.id);
+      }
+    }
     this.currentAlert = null;
     this.isShowing = false;
     // Следующий алерт из очереди — откроется сразу

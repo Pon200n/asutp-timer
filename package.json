@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "vendor": "node tools/sync-vendor.js",
+    "sound": "node tools/gen-alarm-sound.js",
+    "test": "node tools/test-alerts.js"
   },
   "keywords": [],
   "author": "",

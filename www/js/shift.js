@@ -36,11 +36,31 @@ App.Shift = {
       this.events = [];
       App.UI.renderSchedule([], startMs);
       App.UI.renderChain(App.State.chain, [], Date.now());
+      this.rescheduleAlerts();
       return;
     }
     this.events = App.Scheduler.calculate(App.State.chain, startMs, Date.now());
     App.UI.renderSchedule(this.events, startMs);
     App.UI.renderChain(App.State.chain, this.events, Date.now());
+    this.rescheduleAlerts();
+  },
+
+  // Системные будильники: ОС будит телефон в нужную секунду, даже если
+  // приложение свёрнуто или убито. Пересобираются при каждом изменении смены.
+  rescheduleAlerts: function () {
+    if (!App.Native || !App.Native.available) return;
+    if (!App.State.isRunning || !this.events.length) {
+      App.Native.cancelAlerts();
+      return;
+    }
+    if (App.Native.permission !== 'granted') return;   // без разрешения ОС не покажет уведомления
+    const alerts = App.Alerts.buildShiftAlerts(this.events, App.State.shiftStartMs);
+    App.Native.cancelAlerts()
+      .then(function () { return App.Native.scheduleAlerts(alerts); })
+      .then(function (n) {
+        if (n) console.log('[Shift] системных будильников запланировано:', n);
+      })
+      .catch(function (e) { console.warn('[Shift] rescheduleAlerts:', e); });
   },
 
   start: function () {
@@ -102,19 +122,9 @@ App.Shift = {
     }
 
     if (!App.State.shiftStartNotified) {
+      // Само оповещение «СМЕНА НАЧАЛАСЬ» приходит системным уведомлением —
+      // здесь только фиксируем факт, чтобы не повторяться.
       App.State.markStartNotified();
-      const elapsed = nowMs - shiftStartMs;
-      if (elapsed >= 0 && elapsed < 60000) {
-        const firstOp = this.events.find(e => e.type === 'op');
-        const label = firstOp ? firstOp.label : 'Смена';
-        if (App.Alerts) {
-          App.Alerts.enqueue({
-            title: 'СМЕНА // СТАРТ',
-            text: 'СМЕНА НАЧАЛАСЬ. НУЖНО НАЧАТЬ: ' + label,
-            kind: 'op_start', mode: 'op'
-          });
-        }
-      }
     }
 
     App.UI.setHudStatus('СМЕНА АКТИВНА', 'var(--green)');
@@ -142,7 +152,9 @@ App.Shift = {
     if (diffSec <= 0) {
       ev.fired = true;
       App.UI.renderSchedule(this.events, shiftStartMs);
-      if (diffSec > -60 && App.Alerts) App.Alerts.fireAlarm(ev, nextIdx);
+      // Основной сигнал тревоги — системное уведомление (его доставит ОС).
+      // armFallback — подстраховка, если уведомление почему-то не дошло.
+      if (App.Alerts) App.Alerts.armFallback(ev, nextIdx, nowMs);
     }
   },
 

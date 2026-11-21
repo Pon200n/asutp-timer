@@ -26,6 +26,8 @@ jobs:
       - name: Install dependencies & Sync Capacitor
         run: |
           npm install
+          # Обновляем глобальные бандлы плагинов в www/vendor/ под установленные версии
+          node tools/sync-vendor.js
           npx cap sync android
 
       - name: Build Debug APK

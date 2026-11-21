@@ -217,6 +217,12 @@
     <button id="btnToastUndo" class="toast-undo">ОТМЕНИТЬ</button>
   </div>
 
+  <!-- Нативный слой Capacitor (без сборщика: глобальные бандлы из www/vendor) -->
+  <script src="vendor/capacitor.js"></script>
+  <script src="vendor/local-notifications.js"></script>
+  <script src="vendor/text-to-speech.js"></script>
+  <script src="vendor/foreground-service.js"></script>
+
   <script src="js/config.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/state.js"></script>
@@ -229,6 +235,7 @@
   <script src="js/shift.js"></script>
   <script src="js/alerts.js"></script>
   <script src="js/settings.js"></script>
+  <script src="js/native.js"></script>
 
   <script>
     (function setupDetailsAnimation() {
@@ -276,6 +283,8 @@
 
     if (window.App && App.State) {
       App.State.load();
+      // Нативный слой: канал уведомлений, кнопка «ПРИНЯТО», системные будильники
+      if (App.Native) App.Native.init();
       if (App.Templates) App.Templates.init();
       if (App.Alerts) App.Alerts.init();
       if (App.Settings) App.Settings.init();
