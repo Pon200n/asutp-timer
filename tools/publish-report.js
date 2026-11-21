@@ -71,7 +71,7 @@ async function put(file, content) {
 
   console.log('публикую в ветку ' + BRANCH + ': ' + files.join(', '));
   for (const f of files) {
-    results.push(await put(f, fs.readFileSync(path.join(DIR, f), 'utf8')));
+    results.push(await put(DIR + '/' + f, fs.readFileSync(path.join(DIR, f), 'utf8')));
   }
 
   // Лог публикации — в следующем прогоне он уедет в ветку, и мы увидим,
@@ -79,7 +79,7 @@ async function put(file, content) {
   try {
     fs.writeFileSync(path.join(DIR, 'publish-report.log'),
       'запуск: ' + new Date().toISOString() + '\n' + results.join('\n') + '\n');
-    await put('publish-report.log', fs.readFileSync(path.join(DIR, 'publish-report.log'), 'utf8'));
+    await put(DIR + '/publish-report.log', fs.readFileSync(path.join(DIR, 'publish-report.log'), 'utf8'));
   } catch (e) {
     console.error('не удалось записать лог публикации:', e.message);
   }

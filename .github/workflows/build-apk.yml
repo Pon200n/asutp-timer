@@ -59,12 +59,8 @@ jobs:
           APK=android/app/build/outputs/apk/debug/app-debug.apk
           mkdir -p apk-info
           {
-            echo "### Ошибки сборки gradle (если есть)"
-            if [ -f gradle-build.log ]; then
-              grep -aE "error:|FAILURE|What went wrong|Caused by|symbol:|location:" gradle-build.log | head -40
-            else
-              echo "(лога нет)"
-            fi
+            echo "### Хвост лога сборки gradle"
+            if [ -f gradle-build.log ]; then tail -60 gradle-build.log; else echo "(лога нет)"; fi
             echo
             echo "### Файл"
             ls -la "$APK" 2>&1
