@@ -5,8 +5,10 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.media.AudioAttributes;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
@@ -34,7 +36,7 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
     public static final String EXTRA_ID = "asutp_id";
     public static final String EXTRA_PAYLOAD = "asutp_payload";
 
-    public static final String CHANNEL_ID = "asutp_alarms_v2";
+    public static final String CHANNEL_ID = "asutp_alarms_v3";
     public static final String PREFS = "asutp_alarm";
     public static final String KEY_PENDING = "pending";
 
@@ -176,7 +178,17 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
         NotificationManagerCompat.from(ctx).notify(NOTIFICATION_ID, b.build());
     }
 
-    /** Канал уведомлений: без системного звука — звучит нативный зуммер. */
+    /**
+     * Канал уведомлений тревоги.
+     *
+     * Звук у канала ОБЯЗАТЕЛЕН: MIUI прячет уведомления без звука в секцию
+     * «Без звука» — уведомление тревоги становилось не видно в шторке.
+     * Системный звук канала играет по STREAM_NOTIFICATION (в беззвучном режиме
+     * не слышен — слышен нативный зуммер USAGE_ALARM).
+     *
+     * Смена версии канала обязательна: звук у созданного канала изменить
+     * нельзя, поэтому каждый раз, когда меняем звук, — новый id.
+     */
     static void ensureChannel(Context ctx) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
         try {
@@ -186,7 +198,15 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
             NotificationChannel ch = new NotificationChannel(
                     CHANNEL_ID, "Тревоги АСУТП", NotificationManager.IMPORTANCE_HIGH);
             ch.setDescription("Оповещения о начале и окончании операций смены");
-            ch.setSound(null, null);
+
+            Uri sound = Uri.parse("android.resource://" + ctx.getPackageName()
+                    + "/" + R.raw.asutp_alarm);
+            AudioAttributes attrs = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build();
+            ch.setSound(sound, attrs);
+
             ch.enableVibration(false);
             ch.setShowBadge(true);
             ch.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);

@@ -108,7 +108,7 @@ public class AsutpLiveService extends Service {
                     (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
             if (nm == null) return;
             NotificationChannel ch = new NotificationChannel(
-                    CHANNEL_ID, "Смена АСУТП", NotificationManager.IMPORTANCE_LOW);
+                    CHANNEL_ID, "Смена АСУТП", NotificationManager.IMPORTANCE_DEFAULT);
             ch.setDescription("Текущая операция, обратный отсчёт и прогресс");
             ch.setSound(null, null);
             ch.enableVibration(false);
