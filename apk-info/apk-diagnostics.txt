@@ -3,10 +3,10 @@
 > Task :capacitor-community-text-to-speech:prepareDebugArtProfile
 > Task :capacitor-community-text-to-speech:prepareLintJarForPublish
 > Task :capacitor-community-text-to-speech:mergeDebugJavaResource
-> Task :capacitor-cordova-android-plugins:checkDebugAarMetadata
 > Task :capacitor-community-text-to-speech:syncDebugLibJars
 > Task :capacitor-community-text-to-speech:bundleDebugAar
 > Task :capacitor-community-text-to-speech:assembleDebug
+> Task :capacitor-cordova-android-plugins:checkDebugAarMetadata
 > Task :capacitor-cordova-android-plugins:stripDebugDebugSymbols NO-SOURCE
 > Task :capacitor-cordova-android-plugins:copyDebugJniLibsProjectAndLocalJars
 > Task :capacitor-cordova-android-plugins:extractDebugAnnotations
@@ -14,10 +14,10 @@
 > Task :capacitor-cordova-android-plugins:mergeDebugGeneratedProguardFiles
 > Task :capacitor-cordova-android-plugins:mergeDebugConsumerProguardFiles
 > Task :capacitor-cordova-android-plugins:prepareDebugArtProfile
-> Task :capacitor-cordova-android-plugins:prepareLintJarForPublish
 > Task :app:packageDebug
 > Task :app:createDebugApkListingFileRedirect
 > Task :app:assembleDebug
+> Task :capacitor-cordova-android-plugins:prepareLintJarForPublish
 > Task :capacitor-cordova-android-plugins:mergeDebugJavaResource
 > Task :capacitor-local-notifications:checkDebugAarMetadata
 > Task :capacitor-cordova-android-plugins:syncDebugLibJars
@@ -57,13 +57,13 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 1m 48s
+BUILD SUCCESSFUL in 1m 52s
 184 actionable tasks: 184 executed
 
 ### Файл
--rw-r--r-- 1 runner runner 4612623 Nov 22 13:41 android/app/build/outputs/apk/debug/app-debug.apk
-sha256: 3f31546817a55c2a5865a57ab72e55a605fee8860e08ca51248012bbb38a6d28
-байт:   4612623
+-rw-r--r-- 1 runner runner 4615631 Nov 22 14:28 android/app/build/outputs/apk/debug/app-debug.apk
+sha256: b9408b15b9a149d968285044804ee652f0431d568c0f9087c9f66e0bc57798e8
+байт:   4615631
 
 ### Целостность архива
     testing: org/apache/cordova/allowlist/index.html   OK
@@ -119,19 +119,19 @@ application-label-fa:'ASUTP Timer'
 application-label-fi:'ASUTP Timer'
 
 ### Веб-ресурсы и звуки внутри APK
-    16900  1981-01-01 01:01   assets/public/index.html
-    16408  1981-01-01 01:01   assets/public/js/alerts.js
-     1936  1981-01-01 01:01   assets/public/js/config.js
+    17178  1981-01-01 01:01   assets/public/index.html
+    18302  1981-01-01 01:01   assets/public/js/alerts.js
+     2131  1981-01-01 01:01   assets/public/js/config.js
      4949  1981-01-01 01:01   assets/public/js/locks.js
     17207  1981-01-01 01:01   assets/public/js/native.js
      4671  1981-01-01 01:01   assets/public/js/scheduler.js
-    10312  1981-01-01 01:01   assets/public/js/settings.js
+    13032  1981-01-01 01:01   assets/public/js/settings.js
     11766  1981-01-01 01:01   assets/public/js/shift.js
-     4563  1981-01-01 01:01   assets/public/js/state.js
+     5027  1981-01-01 01:01   assets/public/js/state.js
      9690  1981-01-01 01:01   assets/public/js/swipe.js
      7705  1981-01-01 01:01   assets/public/js/templates.js
      1015  1981-01-01 01:01   assets/public/js/toast.js
-     4897  1981-01-01 01:01   assets/public/js/ui.js
+     5525  1981-01-01 01:01   assets/public/js/ui.js
      2156  1981-01-01 01:01   assets/public/js/utils.js
      8741  1981-01-01 01:01   assets/public/vendor/capacitor.js
      1976  1981-01-01 01:01   assets/public/vendor/foreground-service.js
@@ -142,9 +142,9 @@ application-label-fi:'ASUTP Timer'
 
 ### Где лежит debug.keystore (нужно для кэша ключей)
 total 12
-drwxr-xr-x  2 runner runner 4096 Nov 22 13:39 .
-drwxr-x--- 16 runner runner 4096 Nov 22 13:40 ..
--rw-r--r--  1 runner runner  127 Nov 22 13:39 analytics.settings
+drwxr-xr-x  2 runner runner 4096 Nov 22 14:27 .
+drwxr-x--- 16 runner runner 4096 Nov 22 14:28 ..
+-rw-r--r--  1 runner runner  127 Nov 22 14:27 analytics.settings
 
 
 ### Ошибки сборки gradle (если есть)
