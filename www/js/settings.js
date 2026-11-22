@@ -197,6 +197,9 @@ App.Settings = {
       if (t.value === 'signal' && App.Native && App.Native.alarmAvailable) {
         App.Native.stopSpeak();
       }
+      // Перепланируем: payload тревог содержит фразу озвучки, и без
+      // перепланирования следующие тревоги будут говорить старым текстом
+      if (App.Shift) App.Shift.rescheduleAlerts();
       return;
     }
     if (t.id === 'setClickSound') {

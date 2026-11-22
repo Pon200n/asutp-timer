@@ -93,6 +93,8 @@ public class AsutpAlarmPlugin extends Plugin {
 
             // Уже запланированные будильники не трогаем: пересоздание будильника
             // сдвигает его в очереди Doze, и тревога приходит с задержкой.
+            // Сравниваем не только время, но и payload: он может измениться
+            // (например, включили/выключили голос в режиме оповещений).
             SharedPreferences prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
             JSObject prev;
             try {
@@ -114,7 +116,13 @@ public class AsutpAlarmPlugin extends Plugin {
                 String key = String.valueOf(id);
 
                 if (prev.optLong(key, -1L) == at) {
-                    // Время не изменилось — будильник уже стоит, не пересоздаём
+                    // Время не изменилось — сам будильник не трогаем: его пересоздание
+                    // сдвигает в очереди Doze (задержка +15 с).
+                    // Но payload мог измениться (например, включили/выключили голос
+                    // в режиме оповещений) — обновляем extras у PendingIntent:
+                    // FLAG_UPDATE_CURRENT перезапишет их, и тревога прозвучит
+                    // с новым текстом, а будильник останется на своём месте.
+                    alarmPendingIntent(ctx, id, it.toString());
                     if (ids.length() > 0) ids.append(",");
                     ids.append(id);
                     newIds.add(key);
@@ -305,10 +313,11 @@ public class AsutpAlarmPlugin extends Plugin {
             ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                     .edit()
                     .putString(KEY_IDS, "")
-                    // Время тоже забываем: иначе следующий scheduleAlerts() решит,
-                    // что будильники с этим временем «уже стоят», и не поставит их
-                    // (а их только что сняли).
+                    // Время и payload тоже забываем: иначе следующий scheduleAlerts()
+                    // решит, что будильники с этим содержимым «уже стоят»,
+                    // и не поставит их (а их только что сняли).
                     .putString(KEY_TIMES, "")
+                    .putString(KEY_PAYLOADS, "")
                     .apply();
             AlarmSound.stop(ctx);
             call.resolve();
