@@ -42,26 +42,35 @@
         <service
             android:name="com.asutp.timer.AsutpLiveService"
             android:exported="false"
+            android:directBootAware="true"
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Системные будильники смены АСУТП: постоянное уведомление с текущей операцией, обратным отсчётом и прогрессом" />
         </service>
 
-        <!-- Системные будильники смены (AlarmManager → полноэкранное уведомление) -->
+        <!-- Системные будильники смены (AlarmManager → полноэкранное уведомление).
+             directBootAware: тревога должна сработать и на заблокированном
+             телефоне (после перезагрузки, до первого касания). -->
         <receiver
             android:name="com.asutp.timer.AsutpAlarmReceiver"
-            android:exported="false" />
+            android:exported="false"
+            android:directBootAware="true" />
 
         <!-- После перезагрузки телефона система будильники не восстанавливает —
-             поднимаем их сами, из сохранённого расписания. -->
+             поднимаем их сами, из сохранённого расписания.
+             directBootAware обязателен: без него система не доставляет
+             LOCKED_BOOT_COMPLETED, а хранилище приложения (/data/user/0)
+             зашифровано до разблокировки телефона. -->
         <receiver
             android:name="com.asutp.timer.AsutpBootReceiver"
             android:enabled="true"
-            android:exported="true">
+            android:exported="true"
+            android:directBootAware="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.USER_UNLOCKED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>

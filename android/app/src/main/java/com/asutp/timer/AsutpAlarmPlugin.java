@@ -45,6 +45,10 @@ public class AsutpAlarmPlugin extends Plugin {
     private static final String KEY_TIMES = "times";
     private static final String KEY_PAYLOADS = "payloads";
     private static final String KEY_LIVE = "live";
+    // Номер загрузки, в которой будильники уже восстановлены: чтобы не
+    // пересоздавать их второй раз (BOOT_COMPLETED приходит после
+    // LOCKED_BOOT_COMPLETED, а пересоздание сдвигает будильник в очереди Doze).
+    private static final String KEY_RESTORED_BOOT = "restored_boot";
 
     private static AsutpAlarmPlugin instance;
 
@@ -52,6 +56,42 @@ public class AsutpAlarmPlugin extends Plugin {
     public void load() {
         super.load();
         instance = this;
+    }
+
+    /**
+     * Хранилище расписания будильников — в device-protected (DE) области.
+     *
+     * Обычное хранилище (/data/user/0) зашифровано и недоступно, пока телефон
+     * заблокирован. После перезагрузки система шлёт LOCKED_BOOT_COMPLETED ещё
+     * до разблокировки — и будильники там не восстанавливались: приёмник не
+     * читал сохранённое расписание. В DE-области данные доступны всегда.
+     */
+    static SharedPreferences prefs(Context ctx) {
+        try {
+            Context de = ctx.createDeviceProtectedStorageContext();
+            if (de != null) {
+                return de.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "DE-хранилище недоступно, берём обычное: " + t.getMessage());
+        }
+        return ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+    }
+
+    /** Номер текущей загрузки телефона (растёт при каждом ребуте). */
+    static int bootCount(Context ctx) {
+        try {
+            return Settings.Global.getInt(ctx.getContentResolver(), "boot_count", 0);
+        } catch (Throwable t) {
+            return 0;
+        }
+    }
+
+    /** В этой загрузке будильники уже восстанавливались? */
+    static boolean restoredInThisBoot(Context ctx) {
+        int boot = bootCount(ctx);
+        if (boot <= 0) return false;
+        return prefs(ctx).getInt(KEY_RESTORED_BOOT, -1) == boot;
     }
 
     // ---------- ПЛАНИРОВАНИЕ ----------
@@ -95,10 +135,10 @@ public class AsutpAlarmPlugin extends Plugin {
             // сдвигает его в очереди Doze, и тревога приходит с задержкой.
             // Сравниваем не только время, но и payload: он может измениться
             // (например, включили/выключили голос в режиме оповещений).
-            SharedPreferences prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+            SharedPreferences sp = prefs(ctx);
             JSObject prev;
             try {
-                prev = new JSObject(prefs.getString(KEY_TIMES, "{}"));
+                prev = new JSObject(sp.getString(KEY_TIMES, "{}"));
             } catch (JSONException e) {
                 prev = new JSObject();
             }
@@ -174,7 +214,7 @@ public class AsutpAlarmPlugin extends Plugin {
                 }
             }
 
-            ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            prefs(ctx)
                     .edit()
                     .putString(KEY_IDS, ids.toString())
                     .putString(KEY_TIMES, timesJson(items))
@@ -220,12 +260,12 @@ public class AsutpAlarmPlugin extends Plugin {
         try {
             AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
             if (am == null) return 0;
-            SharedPreferences prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-            String ids = prefs.getString(KEY_IDS, "");
+            SharedPreferences sp = prefs(ctx);
+            String ids = sp.getString(KEY_IDS, "");
             if (ids == null || ids.isEmpty()) return 0;
 
-            JSObject times = new JSObject(prefs.getString(KEY_TIMES, "{}"));
-            JSObject payloads = new JSObject(prefs.getString(KEY_PAYLOADS, "{}"));
+            JSObject times = new JSObject(sp.getString(KEY_TIMES, "{}"));
+            JSObject payloads = new JSObject(sp.getString(KEY_PAYLOADS, "{}"));
 
             long now = System.currentTimeMillis();
             String[] parts = ids.split(",");
@@ -250,6 +290,14 @@ public class AsutpAlarmPlugin extends Plugin {
                 }
                 restored++;
             }
+            if (restored > 0) {
+                // Запоминаем номер загрузки: следующий broadcast в этой же
+                // загрузке (BOOT_COMPLETED после разблокировки) не должен
+                // пересоздавать будильники заново — это сдвинуло бы их в
+                // очереди Doze и задержало тревогу.
+                int boot = bootCount(ctx);
+                if (boot > 0) sp.edit().putInt(KEY_RESTORED_BOOT, boot).apply();
+            }
             Log.i(TAG, "restoreAlarms: восстановлено " + restored);
         } catch (Exception e) {
             Log.e(TAG, "restoreAlarms: " + e.getMessage());
@@ -260,8 +308,8 @@ public class AsutpAlarmPlugin extends Plugin {
     /** Поднять Live-Bar после перезагрузки (состояние сохранено при последнем обновлении). */
     static void restoreLiveBar(Context ctx) {
         try {
-            SharedPreferences prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-            String raw = prefs.getString(KEY_LIVE, "");
+            SharedPreferences sp = prefs(ctx);
+            String raw = sp.getString(KEY_LIVE, "");
             if (raw == null || raw.isEmpty()) return;
             JSObject live = new JSObject(raw);
             Intent i = new Intent(ctx, AsutpLiveService.class);
@@ -286,7 +334,7 @@ public class AsutpAlarmPlugin extends Plugin {
         try {
             Context ctx = getContext();
             AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
-            String ids = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            String ids = prefs(ctx)
                     .getString(KEY_IDS, "");
 
             if (am != null && ids != null && !ids.isEmpty()) {
@@ -310,7 +358,7 @@ public class AsutpAlarmPlugin extends Plugin {
                 }
             }
 
-            ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            prefs(ctx)
                     .edit()
                     .putString(KEY_IDS, "")
                     // Время и payload тоже забываем: иначе следующий scheduleAlerts()
@@ -333,15 +381,15 @@ public class AsutpAlarmPlugin extends Plugin {
     public void getPendingAlarm(PluginCall call) {
         try {
             Context ctx = getContext();
-            SharedPreferences prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-            String raw = prefs.getString(AsutpAlarmReceiver.KEY_PENDING, "[]");
+            SharedPreferences sp = prefs(ctx);
+            String raw = sp.getString(AsutpAlarmReceiver.KEY_PENDING, "[]");
             org.json.JSONArray queue;
             try {
                 queue = new org.json.JSONArray(raw);
             } catch (JSONException e) {
                 queue = new org.json.JSONArray();
             }
-            prefs.edit().remove(AsutpAlarmReceiver.KEY_PENDING).apply();
+            sp.edit().remove(AsutpAlarmReceiver.KEY_PENDING).apply();
 
             // Возвращаем всю очередь: оповещения пары должны попасть в JS по порядку
             JSArray out = new JSArray();
@@ -406,7 +454,7 @@ public class AsutpAlarmPlugin extends Plugin {
                 live.put("endMs", call.getLong("endMs", 0L));
                 live.put("progress", call.getInt("progress", 0));
                 live.put("total", call.getInt("total", 100));
-                ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                prefs(ctx)
                         .edit()
                         .putString(KEY_LIVE, live.toString())
                         .apply();

@@ -70,10 +70,10 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
             // Событие считаем подтверждённым — убираем его из очереди,
             // следующее (если оно есть) остаётся ждать подтверждения
             try {
-                SharedPreferences prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+                SharedPreferences sp = AsutpAlarmPlugin.prefs(ctx);
                 org.json.JSONArray queue;
                 try {
-                    queue = new org.json.JSONArray(prefs.getString(KEY_PENDING, "[]"));
+                    queue = new org.json.JSONArray(sp.getString(KEY_PENDING, "[]"));
                 } catch (JSONException e) {
                     queue = new org.json.JSONArray();
                 }
@@ -84,7 +84,7 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
                     if (ackId > 0 && o.optInt("id", -1) == ackId) continue;  // подтверждённое
                     left.put(o);
                 }
-                prefs.edit().putString(KEY_PENDING, left.toString()).apply();
+                sp.edit().putString(KEY_PENDING, left.toString()).apply();
             } catch (Exception e) {
                 Log.e(TAG, "не удалось снять отметку события: " + e.getMessage());
             }
@@ -100,15 +100,15 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
         try {
             // Очередь, а не один слот: два оповещения пары приходят за ~70 мс,
             // и при перезапуске процесса второе не должно вытеснять первое.
-            SharedPreferences prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+            SharedPreferences sp = AsutpAlarmPlugin.prefs(ctx);
             org.json.JSONArray queue;
             try {
-                queue = new org.json.JSONArray(prefs.getString(KEY_PENDING, "[]"));
+                queue = new org.json.JSONArray(sp.getString(KEY_PENDING, "[]"));
             } catch (JSONException e) {
                 queue = new org.json.JSONArray();
             }
             queue.put(new JSONObject(payload));
-            prefs.edit().putString(KEY_PENDING, queue.toString()).apply();
+            sp.edit().putString(KEY_PENDING, queue.toString()).apply();
         } catch (Exception e) {
             Log.e(TAG, "не удалось сохранить событие: " + e.getMessage());
         }
@@ -136,12 +136,19 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
             // Режим «Только сигнал + вибрация»: голос не нужен — зуммер сразу
             AlarmSound.start(fctx);
         } else {
-            AsutpVoice.speak(ctx, voice, 1.35f, 1.03f, new AsutpVoice.OnSpeechFinished() {
-                @Override
-                public void onFinished() {
-                    AlarmSound.start(fctx);
-                }
-            });
+            try {
+                AsutpVoice.speak(ctx, voice, 1.35f, 1.03f, new AsutpVoice.OnSpeechFinished() {
+                    @Override
+                    public void onFinished() {
+                        AlarmSound.start(fctx);
+                    }
+                });
+            } catch (Exception e) {
+                // На заблокированном телефоне (direct boot) движок речи может
+                // не подняться — зуммер включит страховка ниже.
+                Log.e(TAG, "не удалось озвучить: " + e.getMessage());
+                AlarmSound.start(fctx);
+            }
         }
 
         // Страховка: если движок речи не отработал — зуммер включим всё равно

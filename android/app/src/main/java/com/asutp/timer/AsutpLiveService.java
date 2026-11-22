@@ -3,6 +3,7 @@ package com.asutp.timer;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -84,6 +85,18 @@ public class AsutpLiveService extends Service {
                 .setCategory(NotificationCompat.CATEGORY_PROGRESS)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setPriority(NotificationCompat.PRIORITY_LOW);
+
+        // Тап по строке Live-Bar открывает приложение. Без contentIntent
+        // уведомление «некликабельно» — тап ничего не делал.
+        try {
+            Intent open = new Intent(this, MainActivity.class);
+            open.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            PendingIntent pi = PendingIntent.getActivity(this, 0, open,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            b.setContentIntent(pi);
+        } catch (Exception e) {
+            Log.e(TAG, "contentIntent: " + e.getMessage());
+        }
 
         // Отсчёт ведёт система: NotificationCompat показывает поле when
         // как секундомер, если включить setUsesChronometer.
