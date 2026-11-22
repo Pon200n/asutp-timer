@@ -103,7 +103,9 @@ public void onReceive(Context ctx, Intent intent) {
 
 ### BOOT_COMPLETED receiver
 
-**Нет своего.** Разрешение `android.permission.RECEIVE_BOOT_COMPLETED` объявлено (`AndroidManifest.xml:72`), но ни одного `<receiver>` с этим intent-фильтром в манифесте приложения нет. Приёмник `LocalNotificationRestoreReceiver` есть только в стороннем плагине `@capacitor/local-notifications` — свои будильники он не восстанавливает.
+**Есть свой:** `com.asutp.timer.AsutpBootReceiver` (файл `AsutpBootReceiver.java`, объявлен в манифесте с фильтрами BOOT_COMPLETED / LOCKED_BOOT_COMPLETED / MY_PACKAGE_REPLACED).
+
+Система точные будильники после перезагрузки **не восстанавливает** (проверено на Redmi Note 10: после `adb reboot` в AlarmManager не осталось ни одного будильника приложения), поэтому приёмник пересоздаёт их сам из сохранённого расписания (`AsutpAlarmPlugin.restoreAlarms`) и поднимает Live-Bar (`restoreLiveBar`).
 
 ### Как показывается экран тревоги
 
@@ -306,7 +308,7 @@ list.push({
 </manifest>
 ```
 
-**Все `<receiver>`**: один — `com.asutp.timer.AsutpAlarmReceiver` (без intent-фильтра, без BOOT_COMPLETED).
+**Все `<receiver>`**: два — `com.asutp.timer.AsutpAlarmReceiver` (без intent-фильтра) и `com.asutp.timer.AsutpBootReceiver` (BOOT_COMPLETED / LOCKED_BOOT_COMPLETED / MY_PACKAGE_REPLACED).
 **Все `<service>`**: один — `com.asutp.timer.AsutpLiveService` (`specialUse`).
 **Все `<activity>`**: одна — `.MainActivity` (`singleTask`, `showWhenLocked`, `turnScreenOn`, `portrait`).
 **Все `<uses-permission>`**: INTERNET, POST_NOTIFICATIONS, SCHEDULE_EXACT_ALARM, USE_FULL_SCREEN_INTENT, WAKE_LOCK, VIBRATE, RECEIVE_BOOT_COMPLETED, FOREGROUND_SERVICE, FOREGROUND_SERVICE_SPECIAL_USE, SYSTEM_ALERT_WINDOW — **10 штук**.
@@ -326,7 +328,7 @@ list.push({
 | `AlarmManager.setExact()` / `set()` | **нет** |
 | `ScheduledExecutorService`, `Timer`/`TimerTask` | **нет** |
 | Логика «после срабатывания поставить следующий» | **нет** (все будильники стоят заранее) |
-| Свой `BOOT_COMPLETED`-receiver | **нет** (восстановление будильников после перезагрузки не реализовано) |
+| ~~Свой `BOOT_COMPLETED`-receiver~~ | **есть** (`AsutpBootReceiver`) — будильники и Live-Bar восстанавливаются после перезагрузки |
 | Прямой `startActivity()` из ресивере | **нет** (только Full-Screen Intent через `PendingIntent`) |
 | Вызов `App.Alerts.fireAlarm()` из тикера | **нет** (функция определена, но нигде не вызывается) |
 | Прямые `Capacitor.Plugins.*` из JS | **нет** (только обёртка `App.Native`) |
