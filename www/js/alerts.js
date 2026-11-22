@@ -143,8 +143,11 @@ App.Alerts = {
         title: title,
         text: text,
         // Фраза для озвучки (стиль Edgerunners / деловой) — её произносит
-        // нативная часть, чтобы голос был слышен в беззвучном режиме
-        voice: App.Alerts.buildPhrase(text, kind),
+        // нативная часть, чтобы голос был слышен в беззвучном режиме.
+        // В режиме «Только сигнал + вибрация» фраза пустая — голос не произносится.
+        voice: (App.State.settings.voiceMode === 'signal')
+          ? ''
+          : App.Alerts.buildPhrase(text, kind),
         kind: kind,
         mode: mode,
         eventIdx: idx,
@@ -214,6 +217,9 @@ App.Alerts = {
         allowLateMs: 5 * 60 * 1000,
         title: 'СМЕНА // СТАРТ',
         text: 'СМЕНА НАЧАЛАСЬ. НУЖНО НАЧАТЬ: ' + this.cleanLabel(firstOp.label),
+        voice: (App.State.settings.voiceMode === 'signal')
+          ? ''
+          : this.buildPhrase('СМЕНА НАЧАЛАСЬ. НУЖНО НАЧАТЬ: ' + this.cleanLabel(firstOp.label), 'op_start'),
         kind: 'op_start',
         mode: 'op',
         eventIdx: -1,

@@ -132,12 +132,17 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
             voice = "";
         }
 
-        AsutpVoice.speak(ctx, voice, 1.35f, 1.03f, new AsutpVoice.OnSpeechFinished() {
-            @Override
-            public void onFinished() {
-                AlarmSound.start(fctx);
-            }
-        });
+        if (voice.trim().isEmpty()) {
+            // Режим «Только сигнал + вибрация»: голос не нужен — зуммер сразу
+            AlarmSound.start(fctx);
+        } else {
+            AsutpVoice.speak(ctx, voice, 1.35f, 1.03f, new AsutpVoice.OnSpeechFinished() {
+                @Override
+                public void onFinished() {
+                    AlarmSound.start(fctx);
+                }
+            });
+        }
 
         // Страховка: если движок речи не отработал — зуммер включим всё равно
         new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(
@@ -192,11 +197,10 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setOngoing(true)
                 .setAutoCancel(false)
-                // Звук уведомления НЕ нужен: тревогу озвучивает нативный зуммер
-                // (USAGE_ALARM — его слышно в беззвучном режиме и им управляют
-                // кнопки громкости). Канал при этом остаётся «со звуком» —
-                // иначе MIUI прячет уведомление в секцию «Без звука».
-                .setSilent(true)
+                // setSilent(true) здесь НЕЛЬЗЯ: тихое уведомление MIUI считает
+                // непригодным для показа на экране блокировки — пропадает флаг
+                // FLAG_FULLSCREEN_INTENT, и приложение не вылезает над замком.
+                // Звук у канала короткий (0.55 с) — это «пинг» перед голосом.
                 .setContentIntent(contentPi)
                 .setFullScreenIntent(contentPi, true)
                 .addAction(R.drawable.ic_stat_ack, "ПРИНЯТО / ДАЛЕЕ", ackPi);

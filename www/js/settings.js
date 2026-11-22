@@ -193,6 +193,10 @@ App.Settings = {
     }
     if (t.id === 'setVoiceMode') {
       App.State.setSetting('voiceMode', t.value);
+      // Если выключили голос прямо во время тревоги — прерываем текущую фразу
+      if (t.value === 'signal' && App.Native && App.Native.alarmAvailable) {
+        App.Native.stopSpeak();
+      }
       return;
     }
     if (t.id === 'setClickSound') {
