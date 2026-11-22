@@ -39,6 +39,14 @@ App.State = {
       (st && typeof st.settings === 'object' && st.settings) ? st.settings : {}
     );
 
+    // Миграция: раннее оповещение раньше задавалось в минутах (0.5/1/2/5),
+    // теперь — в секундах (15, 30, …).
+    if (this.settings.earlyAlertSec === undefined || this.settings.earlyAlertSec === null) {
+      const oldMin = Number(this.settings.earlyAlertMin) || 0;
+      this.settings.earlyAlertSec = oldMin > 0 ? Math.round(oldMin * 60) : 0;
+    }
+    delete this.settings.earlyAlertMin;
+
     this.isRunning    = !!(st && st.isRunning);
     this.shiftStartMs = (st && typeof st.shiftStartMs === 'number') ? st.shiftStartMs : null;
     this.shiftStartNotified = !!(st && st.shiftStartNotified);

@@ -122,6 +122,43 @@ App.Alerts = {
     try { if (navigator.vibrate) navigator.vibrate([400, 150, 400, 150, 600]); } catch (e) {}
   },
 
+  // ---------- ВРЕМЯ ЗВОНКА: ОКРУГЛЕНИЕ И РАННИЙ СТАРТ ----------
+
+  /**
+   * Время звонка для события, закончившегося в endMs.
+   *
+   * Два независимых механизма (ТЗ п.6.2 и 6.3):
+   *   1) округление: 'down' — к началу минуты (12:34:45 → 12:34:00),
+   *      'up' — к концу минуты;
+   *   2) ранний старт: отнимаем N секунд ОТ ОКРУГЛЁННОГО времени.
+   *
+   * Включаются по отдельности и вместе:
+   *   только округление → 12:34:00
+   *   только ранний     → 12:34:15 (за 30 с до 12:34:45)
+   *   вместе           → 12:34:00 − 15 с = 12:33:45
+   */
+  alarmTimeFor: function (endMs) {
+    let t = endMs;
+    const mode = App.State.settings.roundingMode || 'off';
+    if (mode === 'down') {
+      t = Math.floor(t / 60000) * 60000;
+    } else if (mode === 'up') {
+      t = Math.ceil(t / 60000) * 60000;
+    }
+    const sec = parseInt(App.State.settings.earlyAlertSec, 10) || 0;
+    if (sec > 0) t -= sec * 1000;
+    return t;
+  },
+
+  /** То же, но без «в прошлое»: если округление увело время за момент
+   *  начала события — звоним сразу, иначе будильник был бы пропущен. */
+  alarmTimeForSafe: function (endMs, nowMs) {
+    let t = this.alarmTimeFor(endMs);
+    const now = nowMs || Date.now();
+    if (t < now && endMs > now) t = now + 1000;
+    return t;
+  },
+
   // ---------- ПОСТРОЕНИЕ ТРЕВОГ ----------
   // Единый источник правды: и экран тревоги, и системное уведомление
   // строятся из одних и тех же объектов, поэтому тексты не разъезжаются.
@@ -139,7 +176,8 @@ App.Alerts = {
     const push = function (k, title, text, kind, mode) {
       out.push({
         id: 11 + idx * 10 + k,
-        atMs: ev.endMs,
+        // Время звонка — с учётом округления и раннего старта
+        atMs: App.Alerts.alarmTimeForSafe(ev.endMs),
         title: title,
         text: text,
         // Фраза для озвучки (стиль Edgerunners / деловой) — её произносит
@@ -211,7 +249,8 @@ App.Alerts = {
     if (startMs && firstOp) {
       out.push({
         id: 1,
-        atMs: startMs,
+        // Старт смены — тоже с округлением и ранним стартом
+        atMs: this.alarmTimeForSafe(startMs),
         // Старт «сейчас» (или пару минут назад) — оповещение нужно мгновенно,
         // поэтому допускаем небольшую «опоздалость».
         allowLateMs: 5 * 60 * 1000,

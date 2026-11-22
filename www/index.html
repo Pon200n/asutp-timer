@@ -134,22 +134,23 @@
         <input type="time" id="setStartTimeDefault">
       </div>
       <div class="setting-row">
-        <label for="setEarlyAlert">Раннее оповещение</label>
-        <select id="setEarlyAlert">
-          <option value="0">Выкл</option>
-          <option value="0.5">за 30 сек</option>
-          <option value="1">за 1 мин</option>
-          <option value="2">за 2 мин</option>
-          <option value="5">за 5 мин</option>
-        </select>
+        <label for="setEarlyAlertToggle">Ранний старт</label>
+        <div class="set-ctl">
+          <input type="checkbox" id="setEarlyAlertToggle" class="sw" title="Вкл/выкл ранний старт">
+          <input type="range" id="setEarlyAlertRange" min="5" max="300" step="5" value="30" title="Тяните, чтобы задать интервал">
+          <input type="number" id="setEarlyAlertSec" min="0" max="600" step="1" value="30">
+          <span class="set-unit">сек</span>
+        </div>
       </div>
       <div class="setting-row">
-        <label for="setRounding">Округление сигналов</label>
-        <select id="setRounding">
-          <option value="off">Выкл (точно до секунды)</option>
-          <option value="up">К ближайшей минуте (вверх)</option>
-          <option value="down">В меньшую сторону</option>
-        </select>
+        <label for="setRoundingToggle">Округление сигналов</label>
+        <div class="set-ctl">
+          <input type="checkbox" id="setRoundingToggle" class="sw" title="Вкл/выкл округление">
+          <select id="setRoundingDir" title="Направление округления">
+            <option value="down">В меньшую сторону</option>
+            <option value="up">В большую сторону</option>
+          </select>
+        </div>
       </div>
       <div class="setting-row">
         <label for="setVoiceMode">Режим оповещений</label>

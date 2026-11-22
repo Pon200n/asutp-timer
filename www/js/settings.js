@@ -3,6 +3,9 @@ window.App = window.App || {};
 App.Settings = {
 
   _lastAddedId: null,
+  // Последнее заданное значение раннего старта (секунды) — чтобы тумблер
+  // не забывал его при выключении.
+  _earlySec: 30,
 
   init: function () {
     this.loadBreaksFromSettings();
@@ -34,12 +37,50 @@ App.Settings = {
   render: function () {
     const s = App.State.settings;
     this.setVal('setStartTimeDefault', s.startTimeDefault || '07:45');
-    this.setVal('setEarlyAlert',      String(s.earlyAlertMin || 0));
-    this.setVal('setRounding',        s.roundingMode || 'off');
     this.setVal('setVoiceMode',       s.voiceMode || 'full');
     this.setVal('setClickSound',      s.clickSoundMode || 'both');
     this.setVal('voiceStyle',         s.voiceStyle || 'edgerunners');
+    this.renderEarlyAlert();
+    this.renderRounding();
     this.renderBreaks();
+  },
+
+  // ---------- РАННИЙ СТАРТ ----------
+
+  renderEarlyAlert: function () {
+    const sec = parseInt(App.State.settings.earlyAlertSec, 10) || 0;
+    const on = sec > 0;
+    if (on) this._earlySec = sec;
+    const tog = document.getElementById('setEarlyAlertToggle');
+    const rng = document.getElementById('setEarlyAlertRange');
+    const num = document.getElementById('setEarlyAlertSec');
+    if (tog) tog.checked = on;
+    if (rng) {
+      rng.value = String(Math.min(300, Math.max(5, this._earlySec || 30)));
+      rng.disabled = !on;
+    }
+    if (num) {
+      num.value = String(sec);
+      num.disabled = !on;
+    }
+  },
+
+  // ---------- ОКРУГЛЕНИЕ ----------
+
+  renderRounding: function () {
+    const mode = App.State.settings.roundingMode || 'off';
+    const tog = document.getElementById('setRoundingToggle');
+    const dir = document.getElementById('setRoundingDir');
+    if (tog) tog.checked = (mode === 'down' || mode === 'up');
+    if (dir) {
+      dir.value = (mode === 'up') ? 'up' : 'down';
+      dir.disabled = !tog || !tog.checked;
+    }
+  },
+
+  /** После изменения времени тревог нужен переплан будильников. */
+  replanAlerts: function () {
+    if (App.Shift) App.Shift.rescheduleAlerts();
   },
 
   setVal: function (id, val) {
@@ -183,12 +224,43 @@ App.Settings = {
       }
       return;
     }
-    if (t.id === 'setEarlyAlert') {
-      App.State.setSetting('earlyAlertMin', parseFloat(t.value) || 0);
+    if (t.id === 'setEarlyAlertToggle') {
+      // Вкл/выкл ранний старт, значение интервала запоминаем
+      const v = t.checked ? (this._earlySec || 30) : 0;
+      App.State.setSetting('earlyAlertSec', v);
+      this.renderEarlyAlert();
+      this.replanAlerts();
       return;
     }
-    if (t.id === 'setRounding') {
+    if (t.id === 'setEarlyAlertRange' || t.id === 'setEarlyAlertSec') {
+      let v = parseInt(t.value, 10) || 0;
+      if (v < 0) v = 0;
+      if (v > 600) v = 600;
+      this._earlySec = v;
+      App.State.setSetting('earlyAlertSec', v);
+      // Синхронизируем второе поле, но не перерисовываем то, что правится сейчас
+      if (t.id === 'setEarlyAlertRange') {
+        const num = document.getElementById('setEarlyAlertSec');
+        if (num) num.value = String(v);
+      } else {
+        const rng = document.getElementById('setEarlyAlertRange');
+        if (rng) rng.value = String(Math.min(300, Math.max(5, v)));
+      }
+      this.replanAlerts();
+      return;
+    }
+    if (t.id === 'setRoundingToggle') {
+      const cur = App.State.settings.roundingMode || 'off';
+      const mode = t.checked ? ((cur === 'up') ? 'up' : 'down') : 'off';
+      App.State.setSetting('roundingMode', mode);
+      this.renderRounding();
+      this.replanAlerts();
+      return;
+    }
+    if (t.id === 'setRoundingDir') {
       App.State.setSetting('roundingMode', t.value);
+      this.renderRounding();
+      this.replanAlerts();
       return;
     }
     if (t.id === 'setVoiceMode') {

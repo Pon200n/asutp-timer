@@ -109,5 +109,50 @@ check('«ЗАКОНЧИЛАСЬ» ровно 3 раза (операции 1, 2, 
 check('в текстах нет «(часть N)»', !shift.some(a => /\(часть\s*\d+\)/.test(a.text)),
   shift.filter(a => /\(часть\s*\d+\)/.test(a.text)).map(a => a.text).join(' / '));
 
+// ---------- Округление и ранний старт (ТЗ п.6.2 / 6.3) ----------
+const T = (h, m, s) => new Date(2026, 0, 5, h, m, s, 0).getTime();
+const setMode = (roundingMode, earlyAlertSec) => {
+  App.State.settings.roundingMode = roundingMode;
+  App.State.settings.earlyAlertSec = earlyAlertSec;
+};
+const fmt = ms => App.Utils.fmtTimeFromMs(ms);
+
+setMode('off', 0);
+check('без округления и раннего старта время не меняется',
+  App.Alerts.alarmTimeFor(T(12, 34, 45)) === T(12, 34, 45));
+
+setMode('down', 0);
+check('округление вниз: 12:34:45 → 12:34:00',
+  App.Alerts.alarmTimeFor(T(12, 34, 45)) === T(12, 34, 0),
+  fmt(App.Alerts.alarmTimeFor(T(12, 34, 45))));
+
+setMode('up', 0);
+check('округление вверх: 12:34:45 → 12:35:00',
+  App.Alerts.alarmTimeFor(T(12, 34, 45)) === T(12, 35, 0),
+  fmt(App.Alerts.alarmTimeFor(T(12, 34, 45))));
+
+setMode('off', 30);
+check('ранний старт без округления: 12:34:45 → 12:34:15',
+  App.Alerts.alarmTimeFor(T(12, 34, 45)) === T(12, 34, 15),
+  fmt(App.Alerts.alarmTimeFor(T(12, 34, 45))));
+
+setMode('down', 15);
+check('округление + ранний старт: 12:34:45 → 12:33:45',
+  App.Alerts.alarmTimeFor(T(12, 34, 45)) === T(12, 33, 45),
+  fmt(App.Alerts.alarmTimeFor(T(12, 34, 45))));
+
+setMode('down', 0);
+check('округление не трогает время ровно на границе минуты',
+  App.Alerts.alarmTimeFor(T(12, 34, 0)) === T(12, 34, 0));
+
+// тревоги строятся с округлённым временем
+setMode('down', 0);
+const roundedAlerts = App.Alerts.buildShiftAlerts(events, startMs);
+check('время тревог округлено по настройке',
+  roundedAlerts.every(a => a.atMs % 60000 === 0),
+  roundedAlerts.map(a => fmt(a.atMs)).join(' '));
+
+setMode('off', 0);
+
 console.log('\n' + (fail ? '✗ ПРОВАЛЕНО: ' + fail : '✓ Все проверки пройдены'));
 process.exit(fail ? 1 : 0);

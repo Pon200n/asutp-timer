@@ -16,8 +16,10 @@ App.BREAKS = [
 // Настройки по умолчанию (по ТЗ п.6)
 App.DEFAULT_SETTINGS = {
   startTimeDefault: '07:45',      // дефолтное время старта смены
-  earlyAlertMin: 0,               // 0 = выкл, иначе 0.5/1/2/5 минут
-  roundingMode: 'off',            // 'off' | 'up' | 'down'
+  // Ранний старт: за сколько секунд ДО события звонить (0 = выкл).
+  // Раньше настройка называлась earlyAlertMin и хранила минуты.
+  earlyAlertSec: 0,
+  roundingMode: 'off',            // 'off' | 'down' (в меньшую) | 'up' (в большую)
   voiceMode: 'full',              // 'full' (голос+сигнал+вибро) | 'signal' (только сигнал+вибро)
   voiceStyle: 'edgerunners',      // 'edgerunners' | 'simple'
   voiceRate: 1.03,

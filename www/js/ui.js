@@ -62,9 +62,21 @@ App.UI = {
       const durBadge = ev.durSec > 0
         ? '<span class="sched-dur">[' + App.Utils.fmtDuration(ev.durSec) + ']</span>'
         : '';
+      // Время звонка может отличаться от времени события (округление,
+      // ранний старт) — показываем, чтобы было видно, почему звонок раньше.
+      let alarmBadge = '';
+      try {
+        if (App.Alerts && App.Alerts.alarmTimeFor) {
+          const am = App.Alerts.alarmTimeFor(ev.endMs);
+          if (am !== ev.endMs) {
+            alarmBadge = '<span class="sched-alarm">звонок ' +
+              App.Utils.fmtDateTimeFromMs(am, baseMs) + '</span>';
+          }
+        }
+      } catch (e) {}
       return '<div class="sched-row' + cls + '" id="evRow_' + idx + '">' +
         '<span>' + ev.label + '</span>' +
-        '<span>' + durBadge + App.Utils.fmtDateTimeFromMs(ev.endMs, baseMs) + '</span>' +
+        '<span>' + durBadge + App.Utils.fmtDateTimeFromMs(ev.endMs, baseMs) + alarmBadge + '</span>' +
         '</div>';
     }).join('');
   },
