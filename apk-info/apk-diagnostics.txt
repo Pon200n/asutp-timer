@@ -57,13 +57,13 @@
 
 [Incubating] Problems report is available at: file:///home/runner/work/asutp-timer/asutp-timer/android/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 1m 54s
+BUILD SUCCESSFUL in 1m 28s
 184 actionable tasks: 184 executed
 
 ### Файл
--rw-r--r-- 1 runner runner 4608331 Nov 22 10:50 android/app/build/outputs/apk/debug/app-debug.apk
-sha256: df5570d6e81f5acfc21d945e508b9c10aa8f1404c07d9c735a18b82514f21899
-байт:   4608331
+-rw-r--r-- 1 runner runner 4608523 Nov 22 11:14 android/app/build/outputs/apk/debug/app-debug.apk
+sha256: e57ed1adccbacce39d82593b6e405890e15f47f54fe6779f13004f1b0645a933
+байт:   4608523
 
 ### Целостность архива
     testing: org/apache/cordova/allowlist/index.html   OK
@@ -72,9 +72,9 @@ No errors detected in compressed data of android/app/build/outputs/apk/debug/app
 
 ### Подпись
 V2 Signer: certificate DN: C=US, O=Android, CN=Android Debug
-V2 Signer: certificate SHA-256 digest: 6e216d6d23f2b57994d2446911c6e5ac078009788008497fd67b52a027a18f62
-V2 Signer: certificate SHA-1 digest: db3c35afdff8dce2a8b8e911052119fa9c55d2b6
-V2 Signer: certificate MD5 digest: 15ce23ced5f0a5f7f443e033e917871a
+V2 Signer: certificate SHA-256 digest: 26cd9f8f1b676f269a32f14354f5fa4eebfe2ed637c489868a1cc7c5052d7dd6
+V2 Signer: certificate SHA-1 digest: d27ddc7eb57f626c0a671233c424e1d8af37402d
+V2 Signer: certificate MD5 digest: dc3fa68f4e6921e460ed29f94df0fb8b
 
 ### badging (пакет, версии, разрешения)
 package: name='com.asutp.timer' versionCode='1' versionName='1.0' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
@@ -120,12 +120,12 @@ application-label-fi:'ASUTP Timer'
 
 ### Веб-ресурсы и звуки внутри APK
     16900  1981-01-01 01:01   assets/public/index.html
-    15983  1981-01-01 01:01   assets/public/js/alerts.js
+    16408  1981-01-01 01:01   assets/public/js/alerts.js
      1936  1981-01-01 01:01   assets/public/js/config.js
      4949  1981-01-01 01:01   assets/public/js/locks.js
     17207  1981-01-01 01:01   assets/public/js/native.js
      4671  1981-01-01 01:01   assets/public/js/scheduler.js
-     9761  1981-01-01 01:01   assets/public/js/settings.js
+    10017  1981-01-01 01:01   assets/public/js/settings.js
     11766  1981-01-01 01:01   assets/public/js/shift.js
      4563  1981-01-01 01:01   assets/public/js/state.js
      9690  1981-01-01 01:01   assets/public/js/swipe.js
@@ -142,9 +142,9 @@ application-label-fi:'ASUTP Timer'
 
 ### Где лежит debug.keystore (нужно для кэша ключей)
 total 12
-drwxr-xr-x  2 runner runner 4096 Nov 22 10:49 .
-drwxr-x--- 16 runner runner 4096 Nov 22 10:50 ..
--rw-r--r--  1 runner runner  127 Nov 22 10:49 analytics.settings
+drwxr-xr-x  2 runner runner 4096 Nov 22 11:13 .
+drwxr-x--- 16 runner runner 4096 Nov 22 11:13 ..
+-rw-r--r--  1 runner runner  127 Nov 22 11:13 analytics.settings
 /home/runner/.config/.android/debug.keystore
 
 
