@@ -25,17 +25,6 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      # Без этого каждый CI-билд подписывается НОВЫМ debug-ключом, и новый APK
-      # не может обновить ранее установленный (INSTALL_FAILED_UPDATE_INCOMPATIBLE).
-      # Кэшируем debug.keystore — все сборки будут подписаны одним ключом.
-      # ВАЖНО: actions/cache@v4 в этой генерации отключён (сборки шли с разными
-      # ключами), актуальная ветка — v6.
-      - name: Cache debug keystore
-        uses: actions/cache@v6
-        with:
-          path: ~/.android/debug.keystore
-          key: android-debug-keystore-v1
-
       - name: Install dependencies & Sync Capacitor
         run: |
           npm install
