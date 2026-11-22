@@ -49,6 +49,11 @@
           </div>
         </details>
       </div>
+      <div style="font-size:11px; color:var(--muted); margin-top:8px; line-height:1.45;">
+        ⚠ Не закрывайте приложение свайпом из «недавних»: MIUI при этом
+        отменяет системные будильники. Откроете приложение снова — будильники
+        поднимутся заново.
+      </div>
       <button class="btn-save-lock" id="startSaveBtn" style="display:none;">✓ СОХРАНИТЬ И ЗАКРЫТЬ</button>
     </div>
 
@@ -297,7 +302,11 @@
       if (App.Swipe) App.Swipe.init();
       if (App.Shift) {
         App.Shift.initStartInputs();
-        App.Shift.rebuild();
+        // force=true — при запуске приложения будильники пересоздаются заново:
+        // после свайпа из «недавних» (force-stop) или перезагрузки телефона
+        // система снимает их, а по сохранённым временам нативка считает, что
+        // они «уже стоят», и не ставит их обратно.
+        App.Shift.rebuild(true);
         App.Shift.startTicker();
       }
       if (App.Locks) {

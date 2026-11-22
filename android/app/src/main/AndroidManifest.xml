@@ -52,6 +52,19 @@
         <receiver
             android:name="com.asutp.timer.AsutpAlarmReceiver"
             android:exported="false" />
+
+        <!-- После перезагрузки телефона система будильники не восстанавливает —
+             поднимаем их сами, из сохранённого расписания. -->
+        <receiver
+            android:name="com.asutp.timer.AsutpBootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
     </application>
 
     <!-- Permissions -->

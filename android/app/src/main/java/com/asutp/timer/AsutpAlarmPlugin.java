@@ -43,6 +43,8 @@ public class AsutpAlarmPlugin extends Plugin {
     private static final String PREFS = "asutp_alarm";
     private static final String KEY_IDS = "ids";
     private static final String KEY_TIMES = "times";
+    private static final String KEY_PAYLOADS = "payloads";
+    private static final String KEY_LIVE = "live";
 
     private static AsutpAlarmPlugin instance;
 
@@ -168,6 +170,7 @@ public class AsutpAlarmPlugin extends Plugin {
                     .edit()
                     .putString(KEY_IDS, ids.toString())
                     .putString(KEY_TIMES, timesJson(items))
+                    .putString(KEY_PAYLOADS, payloadsJson(items))
                     .apply();
             AsutpAlarmReceiver.ensureChannel(ctx);
 
@@ -186,6 +189,88 @@ public class AsutpAlarmPlugin extends Plugin {
             o.put(String.valueOf(it.optInt("id", i + 1)), it.optLong("atMs"));
         }
         return o.toString();
+    }
+
+    /** id → payload тревоги: нужен, чтобы после перезагрузки телефона
+     *  восстановить будильники с правильным текстом уведомления. */
+    private String payloadsJson(List<JSONObject> items) {
+        JSObject o = new JSObject();
+        for (int i = 0; i < items.size(); i++) {
+            JSONObject it = items.get(i);
+            o.put(String.valueOf(it.optInt("id", i + 1)), it.toString());
+        }
+        return o.toString();
+    }
+
+    /**
+     * Восстановление будильников после перезагрузки телефона.
+     * Система при старте будильники не восстанавливает, а приложение до
+     * ручного запуска не работает — поэтому пересоздаём их сами.
+     */
+    static int restoreAlarms(Context ctx) {
+        int restored = 0;
+        try {
+            AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+            if (am == null) return 0;
+            SharedPreferences prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+            String ids = prefs.getString(KEY_IDS, "");
+            if (ids == null || ids.isEmpty()) return 0;
+
+            JSObject times = new JSObject(prefs.getString(KEY_TIMES, "{}"));
+            JSObject payloads = new JSObject(prefs.getString(KEY_PAYLOADS, "{}"));
+
+            long now = System.currentTimeMillis();
+            String[] parts = ids.split(",");
+            for (int i = 0; i < parts.length; i++) {
+                String key = parts[i] == null ? "" : parts[i].trim();
+                if (key.isEmpty()) continue;
+                long at = times.optLong(key, 0L);
+                if (at <= now) continue;                    // прошедшие события не восстанавливаем
+                int id;
+                try {
+                    id = Integer.parseInt(key);
+                } catch (Exception e) {
+                    continue;
+                }
+                String payload = payloads.optString(key, "{}");
+                PendingIntent pi = alarmPendingIntent(ctx, id, payload);
+                if (restored == 0) {
+                    // Ближайшая тревога — setAlarmClock: в Doze не откладывается
+                    am.setAlarmClock(new AlarmManager.AlarmClockInfo(at, showPendingIntent(ctx, id)), pi);
+                } else {
+                    am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi);
+                }
+                restored++;
+            }
+            Log.i(TAG, "restoreAlarms: восстановлено " + restored);
+        } catch (Exception e) {
+            Log.e(TAG, "restoreAlarms: " + e.getMessage());
+        }
+        return restored;
+    }
+
+    /** Поднять Live-Bar после перезагрузки (состояние сохранено при последнем обновлении). */
+    static void restoreLiveBar(Context ctx) {
+        try {
+            SharedPreferences prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+            String raw = prefs.getString(KEY_LIVE, "");
+            if (raw == null || raw.isEmpty()) return;
+            JSObject live = new JSObject(raw);
+            Intent i = new Intent(ctx, AsutpLiveService.class);
+            i.setAction(AsutpLiveService.ACTION_UPDATE);
+            i.putExtra(AsutpLiveService.EXTRA_TITLE, live.optString("title", ""));
+            i.putExtra(AsutpLiveService.EXTRA_BODY, live.optString("body", ""));
+            i.putExtra(AsutpLiveService.EXTRA_END, live.optLong("endMs", 0L));
+            i.putExtra(AsutpLiveService.EXTRA_PROGRESS, live.optInt("progress", 0));
+            i.putExtra(AsutpLiveService.EXTRA_TOTAL, live.optInt("total", 100));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ctx.startForegroundService(i);
+            } else {
+                ctx.startService(i);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "restoreLiveBar: " + e.getMessage());
+        }
     }
 
     @PluginMethod
@@ -302,6 +387,24 @@ public class AsutpAlarmPlugin extends Plugin {
             } else {
                 ctx.startService(i);
             }
+
+            // Сохраняем состояние Live-Bar: после перезагрузки телефона сервис
+            // не переживает, и приёмник BOOT_COMPLETED поднимет его заново.
+            try {
+                JSObject live = new JSObject();
+                live.put("title", call.getString("title", ""));
+                live.put("body", call.getString("body", ""));
+                live.put("endMs", call.getLong("endMs", 0L));
+                live.put("progress", call.getInt("progress", 0));
+                live.put("total", call.getInt("total", 100));
+                ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                        .edit()
+                        .putString(KEY_LIVE, live.toString())
+                        .apply();
+            } catch (Exception e) {
+                Log.e(TAG, "updateLiveBar: сохранение состояния: " + e.getMessage());
+            }
+
             call.resolve();
         } catch (Exception e) {
             Log.e(TAG, "updateLiveBar: " + e.getMessage());
@@ -383,19 +486,27 @@ public class AsutpAlarmPlugin extends Plugin {
     // ---------- ВНУТРЕННЕЕ ----------
 
     private PendingIntent alarmPendingIntent(int id, String payload) {
-        Intent i = new Intent(getContext(), AsutpAlarmReceiver.class);
+        return alarmPendingIntent(getContext(), id, payload);
+    }
+
+    private static PendingIntent alarmPendingIntent(Context ctx, int id, String payload) {
+        Intent i = new Intent(ctx, AsutpAlarmReceiver.class);
         i.setAction(AsutpAlarmReceiver.ACTION_ALARM);
         i.putExtra(AsutpAlarmReceiver.EXTRA_ID, id);
         i.putExtra(AsutpAlarmReceiver.EXTRA_PAYLOAD, payload);
-        return PendingIntent.getBroadcast(getContext(), id, i,
+        return PendingIntent.getBroadcast(ctx, id, i,
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     private PendingIntent showPendingIntent(int id) {
-        Intent i = new Intent(getContext(), MainActivity.class);
+        return showPendingIntent(getContext(), id);
+    }
+
+    private static PendingIntent showPendingIntent(Context ctx, int id) {
+        Intent i = new Intent(ctx, MainActivity.class);
         i.setAction(Intent.ACTION_MAIN);
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        return PendingIntent.getActivity(getContext(), id, i,
+        return PendingIntent.getActivity(ctx, id, i,
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
     }
 

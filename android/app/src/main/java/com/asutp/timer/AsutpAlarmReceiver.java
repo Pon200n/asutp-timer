@@ -192,6 +192,11 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setOngoing(true)
                 .setAutoCancel(false)
+                // Звук уведомления НЕ нужен: тревогу озвучивает нативный зуммер
+                // (USAGE_ALARM — его слышно в беззвучном режиме и им управляют
+                // кнопки громкости). Канал при этом остаётся «со звуком» —
+                // иначе MIUI прячет уведомление в секцию «Без звука».
+                .setSilent(true)
                 .setContentIntent(contentPi)
                 .setFullScreenIntent(contentPi, true)
                 .addAction(R.drawable.ic_stat_ack, "ПРИНЯТО / ДАЛЕЕ", ackPi);

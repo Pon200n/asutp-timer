@@ -28,7 +28,7 @@ App.Shift = {
     }
   },
 
-  rebuild: function () {
+  rebuild: function (force) {
     const startMs = App.State.isRunning && App.State.shiftStartMs
       ? App.State.shiftStartMs
       : this.getSelectedStartMs();
@@ -36,18 +36,18 @@ App.Shift = {
       this.events = [];
       App.UI.renderSchedule([], startMs);
       App.UI.renderChain(App.State.chain, [], Date.now());
-      this.rescheduleAlerts();
+      this.rescheduleAlerts(force);
       return;
     }
     this.events = App.Scheduler.calculate(App.State.chain, startMs, Date.now());
     App.UI.renderSchedule(this.events, startMs);
     App.UI.renderChain(App.State.chain, this.events, Date.now());
-    this.rescheduleAlerts();
+    this.rescheduleAlerts(force);
   },
 
   // Системные будильники: ОС будит телефон в нужную секунду, даже если
   // приложение свёрнуто или убито. Пересобираются при каждом изменении смены.
-  rescheduleAlerts: function () {
+  rescheduleAlerts: function (force) {
     if (!App.Native || !App.Native.available) return;
     if (!App.State.isRunning || !this.events.length) {
       App.Native.cancelAlerts();
@@ -55,6 +55,21 @@ App.Shift = {
     }
     if (App.Native.permission !== 'granted') return;   // без разрешения ОС не покажет уведомления
     const alerts = App.Alerts.buildShiftAlerts(this.events, App.State.shiftStartMs);
+
+    if (force) {
+      // Переплан при запуске приложения: будильники могли быть сняты системой
+      // (свайп из «недавних» = force-stop, либо перезагрузка телефона), а нативка
+      // по сохранённым временам считает, что они «уже стоят», и не ставит их
+      // обратно. Поэтому при запуске пересоздаём всё заново.
+      App.Native.cancelAlerts()
+        .then(function () { return App.Native.scheduleAlerts(alerts); })
+        .then(function (n) {
+          if (n) console.log('[Shift] системных будильников восстановлено:', n);
+        })
+        .catch(function (e) { console.warn('[Shift] rescheduleAlerts(force):', e); });
+      return;
+    }
+
     // Здесь НЕЛЬЗЯ вызывать cancelAlerts() перед планированием: он снял бы все
     // будильники, а нативный scheduleAlerts() пропускает пересоздание тех, чьё
     // время не изменилось, — в итоге тревоги пропадали после любой правки
