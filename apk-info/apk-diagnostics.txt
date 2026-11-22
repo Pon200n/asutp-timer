@@ -1,8 +1,8 @@
 ### Хвост лога сборки gradle
-> Task :capacitor-community-text-to-speech:checkDebugAarMetadata
 > Task :capacitor-android:syncDebugLibJars
 > Task :capacitor-android:bundleDebugAar
 > Task :capacitor-android:assembleDebug
+> Task :capacitor-community-text-to-speech:checkDebugAarMetadata
 > Task :capacitor-community-text-to-speech:stripDebugDebugSymbols NO-SOURCE
 > Task :capacitor-community-text-to-speech:copyDebugJniLibsProjectAndLocalJars
 > Task :capacitor-community-text-to-speech:extractDebugAnnotations
@@ -37,14 +37,14 @@
 > Task :capacitor-local-notifications:mergeDebugConsumerProguardFiles
 > Task :capacitor-local-notifications:prepareDebugArtProfile
 > Task :capacitor-local-notifications:prepareLintJarForPublish
-> Task :capacitor-local-notifications:mergeDebugJavaResource
+> Task :capawesome-team-capacitor-android-foreground-service:stripDebugDebugSymbols NO-SOURCE
 > Task :capawesome-team-capacitor-android-foreground-service:checkDebugAarMetadata
+> Task :capawesome-team-capacitor-android-foreground-service:copyDebugJniLibsProjectAndLocalJars
+> Task :capacitor-local-notifications:mergeDebugJavaResource
+> Task :capawesome-team-capacitor-android-foreground-service:extractDebugAnnotations
 > Task :capacitor-local-notifications:syncDebugLibJars
 > Task :capacitor-local-notifications:bundleDebugAar
 > Task :capacitor-local-notifications:assembleDebug
-> Task :capawesome-team-capacitor-android-foreground-service:stripDebugDebugSymbols NO-SOURCE
-> Task :capawesome-team-capacitor-android-foreground-service:copyDebugJniLibsProjectAndLocalJars
-> Task :capawesome-team-capacitor-android-foreground-service:extractDebugAnnotations
 > Task :capawesome-team-capacitor-android-foreground-service:extractDeepLinksForAarDebug
 > Task :capawesome-team-capacitor-android-foreground-service:mergeDebugGeneratedProguardFiles
 > Task :capawesome-team-capacitor-android-foreground-service:mergeDebugConsumerProguardFiles
@@ -57,13 +57,13 @@
 
 [Incubating] Problems report is available at: file:///home/runner/work/asutp-timer/asutp-timer/android/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 1m 52s
+BUILD SUCCESSFUL in 1m 50s
 184 actionable tasks: 184 executed
 
 ### Файл
--rw-r--r-- 1 runner runner 4605555 Nov 22 06:29 android/app/build/outputs/apk/debug/app-debug.apk
-sha256: 82ff555c0a349af28cd2a129707a2a0c87ce6317c66f5bff3fd7818eed73f7ac
-байт:   4605555
+-rw-r--r-- 1 runner runner 4605939 Nov 22 09:20 android/app/build/outputs/apk/debug/app-debug.apk
+sha256: 4cf716bd1b233193417fc2327c16cd84dcc9ab7cab369856a7157ee5c9cb7704
+байт:   4605939
 
 ### Целостность архива
     testing: org/apache/cordova/allowlist/index.html   OK
@@ -72,9 +72,9 @@ No errors detected in compressed data of android/app/build/outputs/apk/debug/app
 
 ### Подпись
 V2 Signer: certificate DN: C=US, O=Android, CN=Android Debug
-V2 Signer: certificate SHA-256 digest: 990f071c69452307cc402db4d00da58d3e1a790ee68f9757e8dac3e01bdbed0d
-V2 Signer: certificate SHA-1 digest: cf6b99fba60640c3c44a27337844f243efd584ea
-V2 Signer: certificate MD5 digest: 41269c9c9b5e6c2cdcf4613856bba48a
+V2 Signer: certificate SHA-256 digest: 3011e0ca6c9dd7b27bb320054504a6d0b836ac049b9affe5dc3b7e61fbd07486
+V2 Signer: certificate SHA-1 digest: 67a50e95e60de0a4b1b0ad1d00e18aed5900b2b0
+V2 Signer: certificate MD5 digest: f211662e8d68836b3bec7a21989a0e5c
 
 ### badging (пакет, версии, разрешения)
 package: name='com.asutp.timer' versionCode='1' versionName='1.0' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
@@ -126,7 +126,7 @@ application-label-fi:'ASUTP Timer'
     17207  1981-01-01 01:01   assets/public/js/native.js
      4671  1981-01-01 01:01   assets/public/js/scheduler.js
      9761  1981-01-01 01:01   assets/public/js/settings.js
-    10399  1981-01-01 01:01   assets/public/js/shift.js
+    10851  1981-01-01 01:01   assets/public/js/shift.js
      4563  1981-01-01 01:01   assets/public/js/state.js
      9690  1981-01-01 01:01   assets/public/js/swipe.js
      7705  1981-01-01 01:01   assets/public/js/templates.js
@@ -142,9 +142,9 @@ application-label-fi:'ASUTP Timer'
 
 ### Где лежит debug.keystore (нужно для кэша ключей)
 total 12
-drwxr-xr-x  2 runner runner 4096 Nov 22 06:28 .
-drwxr-x--- 16 runner runner 4096 Nov 22 06:28 ..
--rw-r--r--  1 runner runner  127 Nov 22 06:28 analytics.settings
+drwxr-xr-x  2 runner runner 4096 Nov 22 09:19 .
+drwxr-x--- 16 runner runner 4096 Nov 22 09:20 ..
+-rw-r--r--  1 runner runner  127 Nov 22 09:19 analytics.settings
 /home/runner/.config/.android/debug.keystore
 
 
