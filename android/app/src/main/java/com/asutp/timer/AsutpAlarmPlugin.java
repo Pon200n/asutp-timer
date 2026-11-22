@@ -99,6 +99,9 @@ public class AsutpAlarmPlugin extends Plugin {
                 prev = new JSObject();
             }
 
+            // Множество id, которые останутся стоять (для точной отмены устаревших)
+            java.util.Set<String> newIds = new java.util.HashSet<String>();
+
             for (int i = 0; i < items.size(); i++) {
                 JSONObject it = items.get(i);
                 long at = it.optLong("atMs");
@@ -112,6 +115,7 @@ public class AsutpAlarmPlugin extends Plugin {
                     // Время не изменилось — будильник уже стоит, не пересоздаём
                     if (ids.length() > 0) ids.append(",");
                     ids.append(id);
+                    newIds.add(key);
                     scheduled++;
                     continue;
                 }
@@ -130,6 +134,7 @@ public class AsutpAlarmPlugin extends Plugin {
 
                 if (ids.length() > 0) ids.append(",");
                 ids.append(id);
+                newIds.add(key);
                 scheduled++;
             }
 
@@ -140,7 +145,9 @@ public class AsutpAlarmPlugin extends Plugin {
             while (keys.hasNext()) {
                 String key = keys.next();
                 if (key == null || key.isEmpty()) continue;
-                if (ids.indexOf(key) >= 0) continue;
+                // Точное сравнение по множеству: поиск подстроки давал ложные
+                // совпадения (ключ «1» находился внутри «11,12,…»)
+                if (newIds.contains(key)) continue;
                 int oldId;
                 try {
                     oldId = Integer.parseInt(key);
@@ -213,6 +220,10 @@ public class AsutpAlarmPlugin extends Plugin {
             ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                     .edit()
                     .putString(KEY_IDS, "")
+                    // Время тоже забываем: иначе следующий scheduleAlerts() решит,
+                    // что будильники с этим временем «уже стоят», и не поставит их
+                    // (а их только что сняли).
+                    .putString(KEY_TIMES, "")
                     .apply();
             AlarmSound.stop(ctx);
             call.resolve();

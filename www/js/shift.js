@@ -55,8 +55,11 @@ App.Shift = {
     }
     if (App.Native.permission !== 'granted') return;   // без разрешения ОС не покажет уведомления
     const alerts = App.Alerts.buildShiftAlerts(this.events, App.State.shiftStartMs);
-    App.Native.cancelAlerts()
-      .then(function () { return App.Native.scheduleAlerts(alerts); })
+    // Здесь НЕЛЬЗЯ вызывать cancelAlerts() перед планированием: он снял бы все
+    // будильники, а нативный scheduleAlerts() пропускает пересоздание тех, чьё
+    // время не изменилось, — в итоге тревоги пропадали после любой правки
+    // расписания. Устаревшие будильники снимает сам нативный scheduleAlerts().
+    App.Native.scheduleAlerts(alerts)
       .then(function (n) {
         if (n) console.log('[Shift] системных будильников запланировано:', n);
       })
