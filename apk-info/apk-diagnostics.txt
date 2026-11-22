@@ -57,12 +57,12 @@
 
 [Incubating] Problems report is available at: file:///home/runner/work/asutp-timer/asutp-timer/android/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 1m 51s
+BUILD SUCCESSFUL in 1m 54s
 184 actionable tasks: 184 executed
 
 ### Файл
--rw-r--r-- 1 runner runner 4608331 Nov 22 10:40 android/app/build/outputs/apk/debug/app-debug.apk
-sha256: f306abfb0b79327f6c0f9f1a853cfb6354a25282ba65963b7079edb90e557a04
+-rw-r--r-- 1 runner runner 4608331 Nov 22 10:50 android/app/build/outputs/apk/debug/app-debug.apk
+sha256: df5570d6e81f5acfc21d945e508b9c10aa8f1404c07d9c735a18b82514f21899
 байт:   4608331
 
 ### Целостность архива
@@ -72,9 +72,9 @@ No errors detected in compressed data of android/app/build/outputs/apk/debug/app
 
 ### Подпись
 V2 Signer: certificate DN: C=US, O=Android, CN=Android Debug
-V2 Signer: certificate SHA-256 digest: 1c3119eb71c0ccfb0a4753ea06dee4807546bdb4c19752c7b378bf5759c97b25
-V2 Signer: certificate SHA-1 digest: d0b593ecfee49fa52360b1cb00949120421a30af
-V2 Signer: certificate MD5 digest: 562c9a430ce0e91c408c11a7b079a76c
+V2 Signer: certificate SHA-256 digest: 6e216d6d23f2b57994d2446911c6e5ac078009788008497fd67b52a027a18f62
+V2 Signer: certificate SHA-1 digest: db3c35afdff8dce2a8b8e911052119fa9c55d2b6
+V2 Signer: certificate MD5 digest: 15ce23ced5f0a5f7f443e033e917871a
 
 ### badging (пакет, версии, разрешения)
 package: name='com.asutp.timer' versionCode='1' versionName='1.0' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
@@ -142,9 +142,9 @@ application-label-fi:'ASUTP Timer'
 
 ### Где лежит debug.keystore (нужно для кэша ключей)
 total 12
-drwxr-xr-x  2 runner runner 4096 Nov 22 10:39 .
-drwxr-x--- 16 runner runner 4096 Nov 22 10:39 ..
--rw-r--r--  1 runner runner  127 Nov 22 10:39 analytics.settings
+drwxr-xr-x  2 runner runner 4096 Nov 22 10:49 .
+drwxr-x--- 16 runner runner 4096 Nov 22 10:50 ..
+-rw-r--r--  1 runner runner  127 Nov 22 10:49 analytics.settings
 /home/runner/.config/.android/debug.keystore
 
 
