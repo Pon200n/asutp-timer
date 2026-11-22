@@ -103,9 +103,31 @@ public void onReceive(Context ctx, Intent intent) {
 
 ### BOOT_COMPLETED receiver
 
-**Есть свой:** `com.asutp.timer.AsutpBootReceiver` (файл `AsutpBootReceiver.java`, объявлен в манифесте с фильтрами BOOT_COMPLETED / LOCKED_BOOT_COMPLETED / MY_PACKAGE_REPLACED).
+**Есть свой:** `com.asutp.timer.AsutpBootReceiver` (файл `AsutpBootReceiver.java`, объявлен в манифесте с фильтрами BOOT_COMPLETED / LOCKED_BOOT_COMPLETED / USER_UNLOCKED / MY_PACKAGE_REPLACED, `directBootAware="true"`).
 
 Система точные будильники после перезагрузки **не восстанавливает** (проверено на Redmi Note 10: после `adb reboot` в AlarmManager не осталось ни одного будильника приложения), поэтому приёмник пересоздаёт их сам из сохранённого расписания (`AsutpAlarmPlugin.restoreAlarms`) и поднимает Live-Bar (`restoreLiveBar`).
+
+**Найдено на устройстве 22.11 и исправлено (#43):** до разблокировки экрана после перезагрузки тревог не было вообще. Две причины:
+
+1. без `directBootAware` система не доставляет `LOCKED_BOOT_COMPLETED` (он приходит **до** разблокировки) — в логе процесс после загрузки поднимал плагин `local-notifications` (у него флаг есть), а наш приёмник не отрабатывал;
+2. расписание лежало в credential-encrypted хранилище `/data/user/0`, зашифрованном до разблокировки (`run-as` → `couldn't stat /data/user/0/com.asutp.timer`).
+
+Исправление: `directBootAware` у приёмника/службы/ресивера тревог + хранение расписания в **device-protected** области (`AsutpAlarmPlugin.prefs()` → `createDeviceProtectedStorageContext()`). Восстановление выполняется **один раз за загрузку** — по `boot_count` (`Settings.Global`), иначе `BOOT_COMPLETED` после разблокировки пересоздал бы будильники второй раз и сдвинул их в очереди Doze.
+
+Проверено на устройстве: после `adb reboot` на **заблокированном** телефоне — `I/AsutpBoot: после android.intent.action.LOCKED_BOOT_COMPLETED: восстановлено будильников 5`, времена тревог совпали с до-ребутными.
+
+### Где хранится расписание будильников
+
+`AsutpAlarmPlugin.prefs(Context)` — **device-protected** (`/data/user_de/0/com.asutp.timer/shared_prefs/asutp_alarm.xml`), а не обычное `/data/user/0`:
+
+| ключ | что |
+|---|---|
+| `ids` | id запланированных тревог (через запятую) |
+| `times` | id → время срабатывания (мс) |
+| `payloads` | id → полный payload тревоги (текст, голос, kind) |
+| `live` | состояние Live-Bar (для восстановления после ребута) |
+| `pending` | очередь сработавших тревог (живёт в том же файле) |
+| `restored_boot` | номер загрузки, в которой будильники уже восстановлены |
 
 ### Как показывается экран тревоги
 
@@ -270,16 +292,38 @@ list.push({
         <service
             android:name="com.asutp.timer.AsutpLiveService"
             android:exported="false"
+            android:directBootAware="true"
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Системные будильники смены АСУТП: постоянное уведомление с текущей операцией, обратным отсчётом и прогрессом" />
         </service>
 
-        <!-- Системные будильники смены (AlarmManager → полноэкранное уведомление) -->
+        <!-- Системные будильники смены (AlarmManager → полноэкранное уведомление).
+             directBootAware: тревога должна сработать и на заблокированном
+             телефоне (после перезагрузки, до первого касания). -->
         <receiver
             android:name="com.asutp.timer.AsutpAlarmReceiver"
-            android:exported="false" />
+            android:exported="false"
+            android:directBootAware="true" />
+
+        <!-- После перезагрузки телефона система будильники не восстанавливает —
+             поднимаем их сами, из сохранённого расписания.
+             directBootAware обязателен: без него система не доставляет
+             LOCKED_BOOT_COMPLETED, а хранилище приложения (/data/user/0)
+             зашифровано до разблокировки телефона. -->
+        <receiver
+            android:name="com.asutp.timer.AsutpBootReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:directBootAware="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.USER_UNLOCKED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
     </application>
 
     <!-- Permissions -->
@@ -308,7 +352,7 @@ list.push({
 </manifest>
 ```
 
-**Все `<receiver>`**: два — `com.asutp.timer.AsutpAlarmReceiver` (без intent-фильтра) и `com.asutp.timer.AsutpBootReceiver` (BOOT_COMPLETED / LOCKED_BOOT_COMPLETED / MY_PACKAGE_REPLACED).
+**Все `<receiver>`**: два — `com.asutp.timer.AsutpAlarmReceiver` (без intent-фильтра, `directBootAware`) и `com.asutp.timer.AsutpBootReceiver` (BOOT_COMPLETED / LOCKED_BOOT_COMPLETED / USER_UNLOCKED / MY_PACKAGE_REPLACED, `directBootAware`).
 **Все `<service>`**: один — `com.asutp.timer.AsutpLiveService` (`specialUse`).
 **Все `<activity>`**: одна — `.MainActivity` (`singleTask`, `showWhenLocked`, `turnScreenOn`, `portrait`).
 **Все `<uses-permission>`**: INTERNET, POST_NOTIFICATIONS, SCHEDULE_EXACT_ALARM, USE_FULL_SCREEN_INTENT, WAKE_LOCK, VIBRATE, RECEIVE_BOOT_COMPLETED, FOREGROUND_SERVICE, FOREGROUND_SERVICE_SPECIAL_USE, SYSTEM_ALERT_WINDOW — **10 штук**.
