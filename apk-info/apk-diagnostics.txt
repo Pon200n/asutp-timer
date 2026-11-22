@@ -3,10 +3,13 @@
 > Task :capacitor-community-text-to-speech:prepareDebugArtProfile
 > Task :capacitor-community-text-to-speech:prepareLintJarForPublish
 > Task :capacitor-community-text-to-speech:mergeDebugJavaResource
+> Task :capacitor-cordova-android-plugins:checkDebugAarMetadata
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect
+> Task :app:assembleDebug
 > Task :capacitor-community-text-to-speech:syncDebugLibJars
 > Task :capacitor-community-text-to-speech:bundleDebugAar
 > Task :capacitor-community-text-to-speech:assembleDebug
-> Task :capacitor-cordova-android-plugins:checkDebugAarMetadata
 > Task :capacitor-cordova-android-plugins:stripDebugDebugSymbols NO-SOURCE
 > Task :capacitor-cordova-android-plugins:copyDebugJniLibsProjectAndLocalJars
 > Task :capacitor-cordova-android-plugins:extractDebugAnnotations
@@ -14,9 +17,6 @@
 > Task :capacitor-cordova-android-plugins:mergeDebugGeneratedProguardFiles
 > Task :capacitor-cordova-android-plugins:mergeDebugConsumerProguardFiles
 > Task :capacitor-cordova-android-plugins:prepareDebugArtProfile
-> Task :app:packageDebug
-> Task :app:createDebugApkListingFileRedirect
-> Task :app:assembleDebug
 > Task :capacitor-cordova-android-plugins:prepareLintJarForPublish
 > Task :capacitor-cordova-android-plugins:mergeDebugJavaResource
 > Task :capacitor-local-notifications:checkDebugAarMetadata
@@ -57,11 +57,11 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 1m 52s
+BUILD SUCCESSFUL in 1m 47s
 184 actionable tasks: 184 executed
 
 ### Файл
--rw-r--r-- 1 runner runner 4615631 Nov 22 14:28 android/app/build/outputs/apk/debug/app-debug.apk
+-rw-r--r-- 1 runner runner 4615631 Nov 22 14:48 android/app/build/outputs/apk/debug/app-debug.apk
 sha256: b9408b15b9a149d968285044804ee652f0431d568c0f9087c9f66e0bc57798e8
 байт:   4615631
 
@@ -142,9 +142,9 @@ application-label-fi:'ASUTP Timer'
 
 ### Где лежит debug.keystore (нужно для кэша ключей)
 total 12
-drwxr-xr-x  2 runner runner 4096 Nov 22 14:27 .
-drwxr-x--- 16 runner runner 4096 Nov 22 14:28 ..
--rw-r--r--  1 runner runner  127 Nov 22 14:27 analytics.settings
+drwxr-xr-x  2 runner runner 4096 Nov 22 14:47 .
+drwxr-x--- 16 runner runner 4096 Nov 22 14:47 ..
+-rw-r--r--  1 runner runner  127 Nov 22 14:47 analytics.settings
 
 
 ### Ошибки сборки gradle (если есть)
