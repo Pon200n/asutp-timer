@@ -125,15 +125,17 @@ public void onReceive(Context ctx, Intent intent) {
 | `ids` | id запланированных тревог (через запятую) |
 | `times` | id → время срабатывания (мс) |
 | `payloads` | id → полный payload тревоги (текст, голос, kind) |
+| `armed` | полный список id, которые нативная часть когда-либо поставила — нужен, чтобы снимать будильники, выпавшие из текущего плана (иначе они звонят со старым текстом) |
 | `live` | состояние Live-Bar (для восстановления после ребута) |
 | `pending` | очередь сработавших тревог (живёт в том же файле) |
 | `restored_boot` | номер загрузки, в которой будильники уже восстановлены |
 
 ### Как показывается экран тревоги
 
-**Full-Screen Intent** (не прямой `startActivity()`, не только heads-up). `AsutpAlarmReceiver.java:166-199`:
+**Full-Screen Intent** (не прямой `startActivity()`, не только heads-up). Цель —
+нативный `AsutpAlarmActivity`, а не `MainActivity`:
 ```java
-Intent full = new Intent(ctx, MainActivity.class);
+Intent full = new Intent(ctx, AsutpAlarmActivity.class);
 full.setAction(Intent.ACTION_MAIN);
 full.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
         | Intent.FLAG_ACTIVITY_SINGLE_TOP
@@ -158,6 +160,24 @@ NotificationCompat.Builder b = new NotificationCompat.Builder(ctx, CHANNEL_ID)
 NotificationManagerCompat.from(ctx).notify(NOTIFICATION_ID, b.build());
 ```
 Отдельного `startActivity()` в ресивере нет. У самой activity в манифесте `android:showWhenLocked="true"` и `android:turnScreenOn="true"`.
+
+**Почему нативная activity, а не `MainActivity`** (проверено на устройстве 22.11):
+в direct boot — телефон перезагружен, но ещё не разблокирован — обычный
+`MainActivity` системе недоступен, и полноэкранное намерение проваливалось:
+
+```
+E/ActivityStarterImpl: Error: Activity class {com.asutp.timer/.MainActivity} does not exist.
+```
+
+Экран оставался тёмным, приложение над замком не появлялось. `AsutpAlarmActivity`
+объявлена `directBootAware` и рисует тревогу сама (заголовок, текст, кнопка
+«ПРИНЯТО / ДАЛЕЕ», которая гасит зуммер тем же broadcast'ом, что и кнопка в
+уведомлении). Если пользователь разблокирован — activity перенаправляет в
+`MainActivity`, обычный путь (JS-оверлей) не меняется.
+
+Проверено: после ребута, на заблокированном телефоне — телефон сам проснулся
+(`Waking up from Asleep`), activity вышла на передний план, кнопка «ПРИНЯТО»
+работает.
 
 ### Что делается при подтверждении
 
