@@ -45,6 +45,11 @@ public class AsutpAlarmPlugin extends Plugin {
     private static final String KEY_TIMES = "times";
     private static final String KEY_PAYLOADS = "payloads";
     private static final String KEY_LIVE = "live";
+    // Полный список id, которые нативная часть когда-либо поставила.
+    // Нужен, чтобы снимать и те будильники, что уже выпали из карты
+    // расписания: иначе они остаются в системе «сиротами» и звонят
+    // со старым текстом (проверено на устройстве 22.11).
+    private static final String KEY_ARMED = "armed";
     // Номер загрузки, в которой будильники уже восстановлены: чтобы не
     // пересоздавать их второй раз (BOOT_COMPLETED приходит после
     // LOCKED_BOOT_COMPLETED, а пересоздание сдвигает будильник в очереди Doze).
@@ -136,12 +141,7 @@ public class AsutpAlarmPlugin extends Plugin {
             // Сравниваем не только время, но и payload: он может измениться
             // (например, включили/выключили голос в режиме оповещений).
             SharedPreferences sp = prefs(ctx);
-            JSObject prev;
-            try {
-                prev = new JSObject(sp.getString(KEY_TIMES, "{}"));
-            } catch (JSONException e) {
-                prev = new JSObject();
-            }
+            JSObject prev = parseMap(sp.getString(KEY_TIMES, "{}"));
 
             // Множество id, которые останутся стоять (для точной отмены устаревших)
             java.util.Set<String> newIds = new java.util.HashSet<String>();
@@ -189,12 +189,28 @@ public class AsutpAlarmPlugin extends Plugin {
             }
 
             // Будильники, которых больше нет в расписании, снимаем.
-            // prev — JSONObject, поэтому перебираем его КЛЮЧИ, а не индексы:
-            // в org.json нет перегрузки optString(int).
+            // Берём объединение двух источников:
+            //   • prev — ключи карты расписания (предыдущий план);
+            //   • armed — полный список когда-либо поставленных id: там есть и
+            //     те, что уже выпали из карты, иначе они остаются в системе
+            //     «сиротами» и звонят со старым текстом.
+            java.util.Set<String> oldIds = new java.util.HashSet<String>();
             java.util.Iterator<String> keys = prev.keys();
             while (keys.hasNext()) {
                 String key = keys.next();
-                if (key == null || key.isEmpty()) continue;
+                if (key != null && !key.isEmpty()) oldIds.add(key);
+            }
+            String armedRaw = sp.getString(KEY_ARMED, "");
+            if (armedRaw != null && !armedRaw.isEmpty()) {
+                String[] aparts = armedRaw.split(",");
+                for (int i = 0; i < aparts.length; i++) {
+                    String k = aparts[i] == null ? "" : aparts[i].trim();
+                    if (!k.isEmpty()) oldIds.add(k);
+                }
+            }
+            java.util.Iterator<String> old = oldIds.iterator();
+            while (old.hasNext()) {
+                String key = old.next();
                 // Точное сравнение по множеству: поиск подстроки давал ложные
                 // совпадения (ключ «1» находился внутри «11,12,…»)
                 if (newIds.contains(key)) continue;
@@ -206,11 +222,11 @@ public class AsutpAlarmPlugin extends Plugin {
                 }
                 Intent i2 = new Intent(ctx, AsutpAlarmReceiver.class);
                 i2.setAction(AsutpAlarmReceiver.ACTION_ALARM);
-                PendingIntent old = PendingIntent.getBroadcast(ctx, oldId, i2,
+                PendingIntent oldPi = PendingIntent.getBroadcast(ctx, oldId, i2,
                         PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE);
-                if (old != null) {
-                    am.cancel(old);
-                    old.cancel();
+                if (oldPi != null) {
+                    am.cancel(oldPi);
+                    oldPi.cancel();
                 }
             }
 
@@ -219,6 +235,10 @@ public class AsutpAlarmPlugin extends Plugin {
                     .putString(KEY_IDS, ids.toString())
                     .putString(KEY_TIMES, timesJson(items))
                     .putString(KEY_PAYLOADS, payloadsJson(items))
+                    // Полный список поставленных будильников — чтобы при
+                    // следующей перепланировке или остановке смены снять
+                    // и те, что выпали из карты расписания.
+                    .putString(KEY_ARMED, ids.toString())
                     .apply();
             AsutpAlarmReceiver.ensureChannel(ctx);
 
@@ -250,6 +270,27 @@ public class AsutpAlarmPlugin extends Plugin {
         return o.toString();
     }
 
+    /** Разобрать строку «id,id,id» в множество id. */
+    private static void addIds(java.util.Set<String> out, String raw) {
+        if (raw == null || raw.isEmpty()) return;
+        String[] parts = raw.split(",");
+        for (int i = 0; i < parts.length; i++) {
+            String k = parts[i] == null ? "" : parts[i].trim();
+            if (!k.isEmpty()) out.add(k);
+        }
+    }
+
+    /** Разобрать JSON-карту. Пустая строка — это пустая карта, а не ошибка:
+     *  после отмены смены в хранилище остаются пустые строки. */
+    private static JSObject parseMap(String raw) {
+        if (raw == null || raw.trim().isEmpty()) return new JSObject();
+        try {
+            return new JSObject(raw);
+        } catch (JSONException e) {
+            return new JSObject();
+        }
+    }
+
     /**
      * Восстановление будильников после перезагрузки телефона.
      * Система при старте будильники не восстанавливает, а приложение до
@@ -264,10 +305,11 @@ public class AsutpAlarmPlugin extends Plugin {
             String ids = sp.getString(KEY_IDS, "");
             if (ids == null || ids.isEmpty()) return 0;
 
-            JSObject times = new JSObject(sp.getString(KEY_TIMES, "{}"));
-            JSObject payloads = new JSObject(sp.getString(KEY_PAYLOADS, "{}"));
+            JSObject times = parseMap(sp.getString(KEY_TIMES, "{}"));
+            JSObject payloads = parseMap(sp.getString(KEY_PAYLOADS, "{}"));
 
             long now = System.currentTimeMillis();
+            StringBuilder restoredIds = new StringBuilder();
             String[] parts = ids.split(",");
             for (int i = 0; i < parts.length; i++) {
                 String key = parts[i] == null ? "" : parts[i].trim();
@@ -288,6 +330,8 @@ public class AsutpAlarmPlugin extends Plugin {
                 } else {
                     am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi);
                 }
+                if (restoredIds.length() > 0) restoredIds.append(",");
+                restoredIds.append(id);
                 restored++;
             }
             if (restored > 0) {
@@ -296,7 +340,14 @@ public class AsutpAlarmPlugin extends Plugin {
                 // пересоздавать будильники заново — это сдвинуло бы их в
                 // очереди Doze и задержало тревогу.
                 int boot = bootCount(ctx);
-                if (boot > 0) sp.edit().putInt(KEY_RESTORED_BOOT, boot).apply();
+                if (boot > 0) {
+                    sp.edit()
+                            .putInt(KEY_RESTORED_BOOT, boot)
+                            // И список восстановленных — чтобы потом снять их
+                            // всех, а не только те, что попали в новый план.
+                            .putString(KEY_ARMED, restoredIds.toString())
+                            .apply();
+                }
             }
             Log.i(TAG, "restoreAlarms: восстановлено " + restored);
         } catch (Exception e) {
@@ -334,16 +385,21 @@ public class AsutpAlarmPlugin extends Plugin {
         try {
             Context ctx = getContext();
             AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
-            String ids = prefs(ctx)
-                    .getString(KEY_IDS, "");
+            SharedPreferences sp = prefs(ctx);
 
-            if (am != null && ids != null && !ids.isEmpty()) {
-                String[] parts = ids.split(",");
-                for (String p : parts) {
-                    if (p == null || p.isEmpty()) continue;
+            // Снимаем всё, что нативная часть когда-либо поставила: и те id,
+            // что в текущем плане, и те, что из него уже выпали («сироты»).
+            java.util.Set<String> toCancel = new java.util.HashSet<String>();
+            addIds(toCancel, sp.getString(KEY_IDS, ""));
+            addIds(toCancel, sp.getString(KEY_ARMED, ""));
+
+            if (am != null && !toCancel.isEmpty()) {
+                java.util.Iterator<String> it = toCancel.iterator();
+                while (it.hasNext()) {
+                    String p = it.next();
                     int id;
                     try {
-                        id = Integer.parseInt(p.trim());
+                        id = Integer.parseInt(p);
                     } catch (Exception e) {
                         continue;
                     }
@@ -366,6 +422,7 @@ public class AsutpAlarmPlugin extends Plugin {
                     // и не поставит их (а их только что сняли).
                     .putString(KEY_TIMES, "")
                     .putString(KEY_PAYLOADS, "")
+                    .putString(KEY_ARMED, "")
                     .apply();
             AlarmSound.stop(ctx);
             call.resolve();
