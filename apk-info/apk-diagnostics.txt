@@ -57,13 +57,13 @@
 
 [Incubating] Problems report is available at: file:///home/runner/work/asutp-timer/asutp-timer/android/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 1m 23s
+BUILD SUCCESSFUL in 1m 51s
 184 actionable tasks: 184 executed
 
 ### Файл
--rw-r--r-- 1 runner runner 4605939 Nov 22 10:29 android/app/build/outputs/apk/debug/app-debug.apk
-sha256: b14f1984495b80527074e7cb4326dde475f564dbd0c285618ddd6602c996a804
-байт:   4605939
+-rw-r--r-- 1 runner runner 4608331 Nov 22 10:40 android/app/build/outputs/apk/debug/app-debug.apk
+sha256: f306abfb0b79327f6c0f9f1a853cfb6354a25282ba65963b7079edb90e557a04
+байт:   4608331
 
 ### Целостность архива
     testing: org/apache/cordova/allowlist/index.html   OK
@@ -72,9 +72,9 @@ No errors detected in compressed data of android/app/build/outputs/apk/debug/app
 
 ### Подпись
 V2 Signer: certificate DN: C=US, O=Android, CN=Android Debug
-V2 Signer: certificate SHA-256 digest: 628d7bda71daf7d343195af571f789e5d26e99867dd3b176758e6109e4d37b15
-V2 Signer: certificate SHA-1 digest: ddb8d350f6477cbeba2502a1ffc2028114837825
-V2 Signer: certificate MD5 digest: 027925da39ec52b0fd6595796b953bb2
+V2 Signer: certificate SHA-256 digest: 1c3119eb71c0ccfb0a4753ea06dee4807546bdb4c19752c7b378bf5759c97b25
+V2 Signer: certificate SHA-1 digest: d0b593ecfee49fa52360b1cb00949120421a30af
+V2 Signer: certificate MD5 digest: 562c9a430ce0e91c408c11a7b079a76c
 
 ### badging (пакет, версии, разрешения)
 package: name='com.asutp.timer' versionCode='1' versionName='1.0' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
@@ -119,14 +119,14 @@ application-label-fa:'ASUTP Timer'
 application-label-fi:'ASUTP Timer'
 
 ### Веб-ресурсы и звуки внутри APK
-    16018  1981-01-01 01:01   assets/public/index.html
+    16900  1981-01-01 01:01   assets/public/index.html
     15983  1981-01-01 01:01   assets/public/js/alerts.js
      1936  1981-01-01 01:01   assets/public/js/config.js
      4949  1981-01-01 01:01   assets/public/js/locks.js
     17207  1981-01-01 01:01   assets/public/js/native.js
      4671  1981-01-01 01:01   assets/public/js/scheduler.js
      9761  1981-01-01 01:01   assets/public/js/settings.js
-    10851  1981-01-01 01:01   assets/public/js/shift.js
+    11766  1981-01-01 01:01   assets/public/js/shift.js
      4563  1981-01-01 01:01   assets/public/js/state.js
      9690  1981-01-01 01:01   assets/public/js/swipe.js
      7705  1981-01-01 01:01   assets/public/js/templates.js
@@ -142,16 +142,16 @@ application-label-fi:'ASUTP Timer'
 
 ### Где лежит debug.keystore (нужно для кэша ключей)
 total 12
-drwxr-xr-x  2 runner runner 4096 Nov 22 10:28 .
-drwxr-x--- 16 runner runner 4096 Nov 22 10:28 ..
--rw-r--r--  1 runner runner  127 Nov 22 10:28 analytics.settings
+drwxr-xr-x  2 runner runner 4096 Nov 22 10:39 .
+drwxr-x--- 16 runner runner 4096 Nov 22 10:39 ..
+-rw-r--r--  1 runner runner  127 Nov 22 10:39 analytics.settings
 /home/runner/.config/.android/debug.keystore
 
 
 ### Ошибки сборки gradle (если есть)
 
 ### Итоговый (merged) AndroidManifest.xml
-# android/app/build/intermediates/merged_manifest/debug/processDebugMainManifest/AndroidManifest.xml
+# android/app/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.asutp.timer"
@@ -255,6 +255,21 @@ drwxr-x--- 16 runner runner 4096 Nov 22 10:28 ..
         <receiver
             android:name="com.asutp.timer.AsutpAlarmReceiver"
             android:exported="false" />
+
+        <!--
+             После перезагрузки телефона система будильники не восстанавливает —
+             поднимаем их сами, из сохранённого расписания.
+        -->
+        <receiver
+            android:name="com.asutp.timer.AsutpBootReceiver"
+            android:enabled="true"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
         <receiver android:name="com.capacitorjs.plugins.localnotifications.TimedNotificationPublisher" />
         <receiver android:name="com.capacitorjs.plugins.localnotifications.NotificationDismissReceiver" />
         <receiver
