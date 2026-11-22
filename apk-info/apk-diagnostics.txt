@@ -4,9 +4,6 @@
 > Task :capacitor-community-text-to-speech:prepareLintJarForPublish
 > Task :capacitor-community-text-to-speech:mergeDebugJavaResource
 > Task :capacitor-cordova-android-plugins:checkDebugAarMetadata
-> Task :app:packageDebug
-> Task :app:createDebugApkListingFileRedirect
-> Task :app:assembleDebug
 > Task :capacitor-community-text-to-speech:syncDebugLibJars
 > Task :capacitor-community-text-to-speech:bundleDebugAar
 > Task :capacitor-community-text-to-speech:assembleDebug
@@ -18,6 +15,9 @@
 > Task :capacitor-cordova-android-plugins:mergeDebugConsumerProguardFiles
 > Task :capacitor-cordova-android-plugins:prepareDebugArtProfile
 > Task :capacitor-cordova-android-plugins:prepareLintJarForPublish
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect
+> Task :app:assembleDebug
 > Task :capacitor-cordova-android-plugins:mergeDebugJavaResource
 > Task :capacitor-local-notifications:checkDebugAarMetadata
 > Task :capacitor-cordova-android-plugins:syncDebugLibJars
@@ -31,14 +31,14 @@
 > Task :capacitor-local-notifications:mergeDebugConsumerProguardFiles
 > Task :capacitor-local-notifications:prepareDebugArtProfile
 > Task :capacitor-local-notifications:prepareLintJarForPublish
-> Task :capawesome-team-capacitor-android-foreground-service:stripDebugDebugSymbols NO-SOURCE
-> Task :capawesome-team-capacitor-android-foreground-service:copyDebugJniLibsProjectAndLocalJars
-> Task :capawesome-team-capacitor-android-foreground-service:checkDebugAarMetadata
 > Task :capacitor-local-notifications:mergeDebugJavaResource
-> Task :capawesome-team-capacitor-android-foreground-service:extractDebugAnnotations
+> Task :capawesome-team-capacitor-android-foreground-service:checkDebugAarMetadata
 > Task :capacitor-local-notifications:syncDebugLibJars
 > Task :capacitor-local-notifications:bundleDebugAar
 > Task :capacitor-local-notifications:assembleDebug
+> Task :capawesome-team-capacitor-android-foreground-service:stripDebugDebugSymbols NO-SOURCE
+> Task :capawesome-team-capacitor-android-foreground-service:copyDebugJniLibsProjectAndLocalJars
+> Task :capawesome-team-capacitor-android-foreground-service:extractDebugAnnotations
 > Task :capawesome-team-capacitor-android-foreground-service:extractDeepLinksForAarDebug
 > Task :capawesome-team-capacitor-android-foreground-service:mergeDebugGeneratedProguardFiles
 > Task :capawesome-team-capacitor-android-foreground-service:mergeDebugConsumerProguardFiles
@@ -57,11 +57,11 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 1m 32s
+BUILD SUCCESSFUL in 1m 48s
 184 actionable tasks: 184 executed
 
 ### Файл
--rw-r--r-- 1 runner runner 4612623 Nov 22 13:24 android/app/build/outputs/apk/debug/app-debug.apk
+-rw-r--r-- 1 runner runner 4612623 Nov 22 13:41 android/app/build/outputs/apk/debug/app-debug.apk
 sha256: 3f31546817a55c2a5865a57ab72e55a605fee8860e08ca51248012bbb38a6d28
 байт:   4612623
 
@@ -142,9 +142,9 @@ application-label-fi:'ASUTP Timer'
 
 ### Где лежит debug.keystore (нужно для кэша ключей)
 total 12
-drwxr-xr-x  2 runner runner 4096 Nov 22 13:23 .
-drwxr-x--- 16 runner runner 4096 Nov 22 13:23 ..
--rw-r--r--  1 runner runner  127 Nov 22 13:23 analytics.settings
+drwxr-xr-x  2 runner runner 4096 Nov 22 13:39 .
+drwxr-x--- 16 runner runner 4096 Nov 22 13:40 ..
+-rw-r--r--  1 runner runner  127 Nov 22 13:39 analytics.settings
 
 
 ### Ошибки сборки gradle (если есть)
