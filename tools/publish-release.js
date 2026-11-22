@@ -94,9 +94,17 @@ async function main() {
     }
   }
 
-  // 3) загрузить свежий
+  // 3) загрузить свежий.
+  // Ассеты релиза грузятся НЕ на api.github.com, а на uploads.github.com —
+  // адрес берётся из поля upload_url релиза (шаблон …/assets{?name,label}).
+  // С api.github.com приходит 404, и ассет в релизе так и не появляется.
   const data = fs.readFileSync(apkPath);
-  const up = await fetch(API + '/releases/' + rel.id + '/assets?name=' + encodeURIComponent(ASSET), {
+  const uploadUrl = rel.upload_url
+    ? rel.upload_url.replace(/\{.*$/, '') + '?name=' + encodeURIComponent(ASSET)
+    : 'https://uploads.github.com/repos/' + REPO + '/releases/' + rel.id +
+      '/assets?name=' + encodeURIComponent(ASSET);
+
+  const up = await fetch(uploadUrl, {
     method: 'POST',
     headers: Object.assign({}, headers, { 'Content-Type': 'application/octet-stream' }),
     body: data
