@@ -31,13 +31,13 @@
 > Task :capacitor-local-notifications:mergeDebugConsumerProguardFiles
 > Task :capacitor-local-notifications:prepareDebugArtProfile
 > Task :capacitor-local-notifications:prepareLintJarForPublish
-> Task :capawesome-team-capacitor-android-foreground-service:stripDebugDebugSymbols NO-SOURCE
 > Task :capacitor-local-notifications:mergeDebugJavaResource
-> Task :capawesome-team-capacitor-android-foreground-service:copyDebugJniLibsProjectAndLocalJars
+> Task :capawesome-team-capacitor-android-foreground-service:stripDebugDebugSymbols NO-SOURCE
 > Task :capawesome-team-capacitor-android-foreground-service:checkDebugAarMetadata
 > Task :capacitor-local-notifications:syncDebugLibJars
 > Task :capacitor-local-notifications:bundleDebugAar
 > Task :capacitor-local-notifications:assembleDebug
+> Task :capawesome-team-capacitor-android-foreground-service:copyDebugJniLibsProjectAndLocalJars
 > Task :capawesome-team-capacitor-android-foreground-service:extractDebugAnnotations
 > Task :capawesome-team-capacitor-android-foreground-service:extractDeepLinksForAarDebug
 > Task :capawesome-team-capacitor-android-foreground-service:mergeDebugGeneratedProguardFiles
@@ -57,13 +57,13 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 1m 23s
+BUILD SUCCESSFUL in 1m 48s
 184 actionable tasks: 184 executed
 
 ### Файл
--rw-r--r-- 1 runner runner 4608667 Nov 22 11:42 android/app/build/outputs/apk/debug/app-debug.apk
-sha256: b1356fcbfad15e58ad33f2be135344f5e881494e40c38e73b681bc04f2805cd8
-байт:   4608667
+-rw-r--r-- 1 runner runner 4609435 Nov 22 12:18 android/app/build/outputs/apk/debug/app-debug.apk
+sha256: a32873c39568a3110b158eb012b70a6f4fde5363faaac5116121f2ba34ff0221
+байт:   4609435
 
 ### Целостность архива
     testing: org/apache/cordova/allowlist/index.html   OK
@@ -142,9 +142,9 @@ application-label-fi:'ASUTP Timer'
 
 ### Где лежит debug.keystore (нужно для кэша ключей)
 total 12
-drwxr-xr-x  2 runner runner 4096 Nov 22 11:41 .
-drwxr-x--- 16 runner runner 4096 Nov 22 11:42 ..
--rw-r--r--  1 runner runner  127 Nov 22 11:41 analytics.settings
+drwxr-xr-x  2 runner runner 4096 Nov 22 12:17 .
+drwxr-x--- 16 runner runner 4096 Nov 22 12:17 ..
+-rw-r--r--  1 runner runner  127 Nov 22 12:17 analytics.settings
 
 
 ### Ошибки сборки gradle (если есть)
@@ -243,6 +243,7 @@ drwxr-x--- 16 runner runner 4096 Nov 22 11:42 ..
         -->
         <service
             android:name="com.asutp.timer.AsutpLiveService"
+            android:directBootAware="true"
             android:exported="false"
             android:foregroundServiceType="specialUse" >
             <property
@@ -250,22 +251,32 @@ drwxr-x--- 16 runner runner 4096 Nov 22 11:42 ..
                 android:value="Системные будильники смены АСУТП: постоянное уведомление с текущей операцией, обратным отсчётом и прогрессом" />
         </service>
 
-        <!-- Системные будильники смены (AlarmManager → полноэкранное уведомление) -->
+        <!--
+             Системные будильники смены (AlarmManager → полноэкранное уведомление).
+             directBootAware: тревога должна сработать и на заблокированном
+             телефоне (после перезагрузки, до первого касания).
+        -->
         <receiver
             android:name="com.asutp.timer.AsutpAlarmReceiver"
+            android:directBootAware="true"
             android:exported="false" />
 
         <!--
              После перезагрузки телефона система будильники не восстанавливает —
              поднимаем их сами, из сохранённого расписания.
+             directBootAware обязателен: без него система не доставляет
+             LOCKED_BOOT_COMPLETED, а хранилище приложения (/data/user/0)
+             зашифровано до разблокировки телефона.
         -->
         <receiver
             android:name="com.asutp.timer.AsutpBootReceiver"
+            android:directBootAware="true"
             android:enabled="true"
             android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.USER_UNLOCKED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
