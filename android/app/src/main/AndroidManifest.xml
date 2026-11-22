@@ -37,6 +37,22 @@
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
 
+        <!-- Нативный экран тревоги — рисуется без WebView.
+             Нужен, когда обычный MainActivity недоступен: после перезагрузки
+             телефона, пока он не разблокирован (direct boot), система не может
+             запустить Activity, и полноэкранное намерение проваливалось.
+             Если пользователь разблокирован — экран перенаправляет в MainActivity. -->
+        <activity
+            android:name="com.asutp.timer.AsutpAlarmActivity"
+            android:exported="false"
+            android:directBootAware="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:theme="@style/AlarmTheme" />
+
         <!-- Live-Bar смены: своя foreground-служба с системным хронометром
              и полосой прогресса. -->
         <service

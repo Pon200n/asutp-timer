@@ -176,8 +176,13 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
 
         ensureChannel(ctx);
 
-        // Полноэкранное намерение — приложение откроется поверх блокировки
-        Intent full = new Intent(ctx, MainActivity.class);
+        // Полноэкранное намерение — экран тревоги поверх блокировки.
+        // Цель — нативный AsutpAlarmActivity, а не MainActivity: в direct boot
+        // (после перезагрузки, до разблокировки) система не может запустить
+        // обычный Activity, и намерение падало с "Activity class does not exist".
+        // Нативный экран показывает тревогу сам, а если телефон разблокирован —
+        // перенаправляет в приложение (обычный путь не меняется).
+        Intent full = new Intent(ctx, AsutpAlarmActivity.class);
         full.setAction(Intent.ACTION_MAIN);
         full.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_SINGLE_TOP
