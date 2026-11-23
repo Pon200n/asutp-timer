@@ -1,5 +1,16 @@
 apply plugin: 'com.android.application'
 
+// Идентификатор сборки: номер прогона CI, короткий sha и время сборки.
+// Они попадают в APK, и приложение показывает их — чтобы всегда было видно,
+// какая именно сборка стоит на телефоне. Номер прогона совпадает с тем,
+// что GitHub показывает в Actions («Build Android APK #48»).
+def buildNumberEnv = System.getenv("BUILD_NUMBER")
+def buildNumber = (buildNumberEnv && buildNumberEnv.isInteger()) ? buildNumberEnv.toInteger() : 0
+def gitSha = (System.getenv("GIT_SHA") ?: "local").trim()
+def buildTime = (System.getenv("BUILD_TIME") ?: "").trim()
+def shortSha = gitSha.length() > 7 ? gitSha.substring(0, 7) : gitSha
+def versionSuffix = buildNumber > 0 ? buildNumber.toString() : "dev"
+
 android {
     namespace = "com.asutp.timer"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +18,11 @@ android {
         applicationId "com.asutp.timer"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode Math.max(1, buildNumber)
+        versionName "1.0." + versionSuffix
+        buildConfigField "String", "GIT_SHA", "\"${shortSha}\""
+        buildConfigField "String", "BUILD_NUMBER", "\"${buildNumber}\""
+        buildConfigField "String", "BUILD_TIME", "\"${buildTime}\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

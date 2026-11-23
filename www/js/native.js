@@ -147,6 +147,13 @@ App.Native = {
 
   // ---------- ТОЧНЫЕ БУДИЛЬНИКИ (Android 12+) ----------
 
+  // Сведения о сборке: номер прогона CI, короткий sha, время сборки и
+  // версия из манифеста. Показываются в настройках.
+  buildInfo: function () {
+    if (!this.alarmAvailable) return Promise.resolve(null);
+    return this.alarm.getBuildInfo().catch(function () { return null; });
+  },
+
   checkExactAlarms: function () {
     if (!this.ln || !this.ln.checkExactNotificationSetting) return Promise.resolve(null);
     return this.ln.checkExactNotificationSetting().then(function (res) {

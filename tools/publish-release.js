@@ -21,6 +21,26 @@ const TOKEN = process.env.GH_TOKEN;
 const API = 'https://api.github.com/repos/' + REPO;
 const TAG = 'latest';
 const ASSET = 'asutp-timer-debug.apk';
+
+// Идентификатор сборки — из CI (номер прогона), тот же, что в Actions
+// («Build Android APK #48») и в самом приложении.
+const BUILD_NUMBER = (process.env.BUILD_NUMBER || '').trim();
+const GIT_SHA = (process.env.GIT_SHA || '').trim();
+const BUILD_TIME = (process.env.BUILD_TIME || '').trim();
+const SHORT_SHA = GIT_SHA.length > 7 ? GIT_SHA.substring(0, 7) : GIT_SHA;
+
+const RELEASE_TITLE = BUILD_NUMBER
+  ? 'Build Android APK #' + BUILD_NUMBER
+  : 'Build Android APK (latest)';
+
+const RELEASE_BODY = [
+  'APK пересобирается при каждом пуше в `main`: файл заменяется свежей сборкой.',
+  '',
+  BUILD_NUMBER ? '- **Сборка:** #' + BUILD_NUMBER : null,
+  (SHORT_SHA && SHORT_SHA !== 'local') ? '- **Коммит:** `' + SHORT_SHA + '` (`' + GIT_SHA + '`)' : null,
+  BUILD_TIME ? '- **Собрано:** ' + BUILD_TIME + ' UTC' : null,
+  '- **Файл:** `' + ASSET + '`'
+].filter(Boolean).join('\n');
 const LOG = path.join('apk-info', 'release-publish.log');
 
 const headers = {
@@ -86,6 +106,19 @@ async function main() {
   }
   say('релиз id=' + rel.id + ' tag=' + rel.tag_name + ' ассетов=' + (rel.assets || []).length);
 
+  // 1б) обновить название и описание: в списке релизов должно быть видно,
+  // какая именно сборка лежит в «latest».
+  const upd = await fetch(API + '/releases/' + rel.id, {
+    method: 'PATCH',
+    headers: Object.assign({}, headers, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ name: RELEASE_TITLE, body: RELEASE_BODY })
+  });
+  if (!upd.ok) {
+    say('не удалось обновить название релиза: ' + upd.status);
+  } else {
+    say('релиз назван: ' + RELEASE_TITLE);
+  }
+
   // 2) убрать прежний APK, чтобы не плодить файлы
   for (const a of (rel.assets || [])) {
     if (a.name === ASSET) {
@@ -99,10 +132,15 @@ async function main() {
   // адрес берётся из поля upload_url релиза (шаблон …/assets{?name,label}).
   // С api.github.com приходит 404, и ассет в релизе так и не появляется.
   const data = fs.readFileSync(apkPath);
-  const uploadUrl = rel.upload_url
-    ? rel.upload_url.replace(/\{.*$/, '') + '?name=' + encodeURIComponent(ASSET)
-    : 'https://uploads.github.com/repos/' + REPO + '/releases/' + rel.id +
-      '/assets?name=' + encodeURIComponent(ASSET);
+  // Подпись ассета — чтобы в списке файлов было видно, какая сборка внутри.
+  const label = encodeURIComponent(
+    (BUILD_NUMBER ? 'Сборка #' + BUILD_NUMBER : 'latest') +
+    (SHORT_SHA && SHORT_SHA !== 'local' ? ' · ' + SHORT_SHA : '')
+  );
+  const uploadUrl = (rel.upload_url
+    ? rel.upload_url.replace(/\{.*$/, '')
+    : 'https://uploads.github.com/repos/' + REPO + '/releases/' + rel.id + '/assets') +
+    '?name=' + encodeURIComponent(ASSET) + '&label=' + label;
 
   const up = await fetch(uploadUrl, {
     method: 'POST',

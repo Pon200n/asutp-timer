@@ -464,6 +464,43 @@ public class AsutpAlarmPlugin extends Plugin {
         }
     }
 
+    // ---------- СВЕДЕНИЯ О СБОРКЕ ----------
+
+    /**
+     * Номер сборки, короткий sha и время сборки. Приложение показывает их
+     * в настройках — чтобы всегда было видно, какая именно сборка стоит
+     * на телефоне, и не приходилось гадать по дате установки.
+     */
+    @PluginMethod
+    public void getBuildInfo(PluginCall call) {
+        try {
+            Context ctx = getContext();
+            String versionName = "1.0";
+            int versionCode = 0;
+            try {
+                android.content.pm.PackageInfo pi = ctx.getPackageManager()
+                        .getPackageInfo(ctx.getPackageName(), 0);
+                if (pi.versionName != null) versionName = pi.versionName;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    versionCode = (int) pi.getLongVersionCode();
+                } else {
+                    versionCode = pi.versionCode;
+                }
+            } catch (Exception e) {
+                Log.w(TAG, "getBuildInfo: package info: " + e.getMessage());
+            }
+            JSObject out = new JSObject();
+            out.put("versionName", versionName);
+            out.put("versionCode", versionCode);
+            out.put("sha", BuildConfig.GIT_SHA);
+            out.put("buildNumber", BuildConfig.BUILD_NUMBER);
+            out.put("buildTime", BuildConfig.BUILD_TIME);
+            call.resolve(out);
+        } catch (Exception e) {
+            call.reject("Ошибка чтения сведений о сборке: " + e.getMessage());
+        }
+    }
+
     // ---------- ПОДТВЕРЖДЕНИЕ ----------
 
     @PluginMethod

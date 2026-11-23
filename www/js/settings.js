@@ -42,7 +42,32 @@ App.Settings = {
     this.setVal('voiceStyle',         s.voiceStyle || 'edgerunners');
     this.renderEarlyAlert();
     this.renderRounding();
+    this.renderBuildInfo();
     this.renderBreaks();
+  },
+
+  // ---------- СВЕДЕНИЯ О СБОРКЕ ----------
+
+  /** Показывает, какая сборка стоит на телефоне: «Сборка #48 · 4ea07eb ·
+   *  версия 1.0.48 · собрано 23.11 21:44». */
+  renderBuildInfo: function () {
+    const el = document.getElementById('buildInfo');
+    if (!el) return;
+    if (!App.Native || !App.Native.available) { el.textContent = ''; return; }
+    App.Native.buildInfo().then(function (bi) {
+      if (!bi) { el.textContent = ''; return; }
+      const parts = [];
+      const num = parseInt(bi.buildNumber, 10);
+      if (num > 0) parts.push('сборка #' + num);
+      if (bi.sha && bi.sha !== 'local') parts.push(bi.sha);
+      parts.push('версия ' + bi.versionName);
+      if (bi.buildTime) {
+        // 2026-11-23T18:44:00Z → 23.11 18:44
+        const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(bi.buildTime);
+        if (m) parts.push('собрано ' + m[3] + '.' + m[2] + ' ' + m[4] + ':' + m[5]);
+      }
+      el.textContent = parts.join(' · ');
+    });
   },
 
   // ---------- РАННИЙ СТАРТ ----------

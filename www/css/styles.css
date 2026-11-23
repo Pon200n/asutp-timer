@@ -971,6 +971,18 @@ details[open] > .details-body { grid-template-rows: 1fr; }
   flex: 0 0 auto;
 }
 
+/* Строка со сведениями о сборке в настройках */
+.build-info {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(37, 37, 56, .6);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: .04em;
+  text-align: right;
+  word-break: break-all;
+}
+
 /* Пометка «звонок раньше» в расписании */
 .sched-alarm {
   margin-left: 8px;

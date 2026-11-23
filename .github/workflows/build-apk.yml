@@ -34,6 +34,15 @@ jobs:
 
       - name: Build Debug APK
         run: |
+          # Номер прогона, sha и время сборки уходят в APK — приложение
+          # показывает их, чтобы всегда было видно, какая сборка установлена.
+          export BUILD_NUMBER="${{ github.run_number }}"
+          export GIT_SHA="${{ github.sha }}"
+          export BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          # Передаём дальше всем шагам (в т.ч. отчёту и публикации релиза)
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
+          echo "GIT_SHA=$GIT_SHA" >> "$GITHUB_ENV"
+          echo "BUILD_TIME=$BUILD_TIME" >> "$GITHUB_ENV"
           cd android
           chmod +x gradlew
           set -o pipefail
@@ -53,6 +62,12 @@ jobs:
           APK=android/app/build/outputs/apk/debug/app-debug.apk
           mkdir -p apk-info
           {
+            echo "### Сборка"
+            echo "номер:    #${BUILD_NUMBER:-?}"
+            echo "коммит:   ${GIT_SHA:-?}"
+            echo "собрано:  ${BUILD_TIME:-?}"
+            echo "релиз:    https://github.com/${GITHUB_REPOSITORY}/releases/tag/latest"
+            echo
             echo "### Хвост лога сборки gradle"
             if [ -f gradle-build.log ]; then tail -60 gradle-build.log; else echo "(лога нет)"; fi
             echo

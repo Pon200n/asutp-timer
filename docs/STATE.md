@@ -319,6 +319,31 @@ WAKE_LOCK VIBRATE RECEIVE_BOOT_COMPLETED
 
 ## 8. Как повторяется цикл разработки
 
+### Как понять, какая сборка стоит на телефоне
+
+**Номер прогона CI — единый идентификатор сборки во всех местах.** Он берётся
+из `github.run_number` и прокидывается в APK (`versionCode`, `versionName`
+«1.0.N», `BuildConfig.BUILD_NUMBER/GIT_SHA/BUILD_TIME`):
+
+| где | что видно |
+|---|---|
+| Actions | **Build Android APK #48** |
+| Releases | релиз назван **«Build Android APK #48»**, в описании — коммит и время сборки, у файла подпись «Сборка #48 · 4ea07eb» |
+| **В приложении** | карточка «07 // Настройки», строка внизу: `сборка #48 · 4ea07eb · версия 1.0.48 · собрано 23.11 21:44` |
+| Система | Настройки → Приложения → ASUTP Timer → «версия 1.0.48» |
+
+Плюс точная проверка «та ли сборка стоит» — по контрольной сумме APK:
+
+```bash
+adb shell "sha256sum \$(pm path com.asutp.timer | sed 's/package://' | tr -d '\r')"
+sha256sum <скачанный APK>
+```
+
+Суммы должны совпадать; в отчёте сборки (ветка `build-info`, файл
+`apk-info/apk-diagnostics.txt`) sha256 собранного APK тоже указан.
+
+### Цикл
+
 ```bash
 # 1. правка кода → коммит → пуш
 git add -A && git commit -m "..." && git push origin main
