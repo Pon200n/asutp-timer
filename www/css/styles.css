@@ -368,8 +368,9 @@ details[open] > .details-body { grid-template-rows: 1fr; }
 .templates-details summary::-webkit-details-marker { display: none; }
 
 /* Секция 03: кнопка «+ Добавить блок в смену» видна всегда, но пока ползунок
-   не свайпнут — тусклая, а список шаблонов свёрнут. После свайпа кнопка
-   становится активной (яркой) и список раскрывается.
+   не свайпнут — заблокирована (тусклая и не нажимается), а список шаблонов
+   свёрнут. После свайпа кнопка становится активной (яркой) и список
+   раскрывается.
    Цвета у заблокированного и у разблокированного — поменяны местами
    относительно прежних состояний свёрнутого/раскрытого. */
 #chainCard:not(.unlocked) #addBlocksDetails summary {
@@ -379,6 +380,7 @@ details[open] > .details-body { grid-template-rows: 1fr; }
   box-shadow: inset 0 0 16px rgba(252, 238, 9, 0.08);
   text-shadow: none;
   animation: none;
+  pointer-events: none;          /* до разблокировки кнопка не нажимается */
 }
 #chainCard.unlocked #addBlocksDetails summary {
   background: linear-gradient(180deg, #fcf03d 0%, var(--yellow) 100%);
@@ -386,6 +388,13 @@ details[open] > .details-body { grid-template-rows: 1fr; }
   border: 1px solid var(--yellow);
   text-shadow: none;
   animation: glowYellowSummary 5s ease-in-out infinite;
+  pointer-events: auto;
+}
+
+/* Текст ползунка центрируется по оставшейся ширине — сам ползунок
+   (42 пикселя слева) не должен перекрывать надпись. */
+#unlockSwipe .swipe-text {
+  padding-left: 52px;
 }
 
 .add-blocks-details summary::before,

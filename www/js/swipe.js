@@ -89,7 +89,7 @@ App.Swipe = {
         const summary = d.querySelector('summary');
         if (summary) summary.click();
       }
-      if (textEl) textEl.textContent = 'Свайп вправо: разблокировать удаление ➔';
+      if (textEl) textEl.textContent = 'Свайп вправо: разблокировать';
     }, 30000);
   },
 
