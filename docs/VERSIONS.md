@@ -28,9 +28,8 @@ adb shell "sha256sum \$(pm path com.asutp.timer | sed 's/package://' | tr -d '\r
    cd android && ./gradlew assembleDebug
    adb install -r app/build/outputs/apk/debug/app-debug.apk
    ```
-2. **Ставится поверх** (`install -r`): подпись постоянная
-   (`keystore/debug.p12`), поэтому разрешения и настройки сохраняются,
-   снос приложения не нужен.
+2. **Ставится поверх** (`install -r`): подпись постоянная, поэтому
+   разрешения и настройки сохраняются, снос приложения не нужен.
 3. **Сверить результат** по sha256 (см. выше) — с таблицей.
 
 ## Таблица сборок
