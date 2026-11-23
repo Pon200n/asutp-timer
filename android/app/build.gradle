@@ -51,6 +51,11 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+    // AGP 8 не генерирует BuildConfig по умолчанию, а именно туда кладутся
+    // номер сборки, sha и время сборки (их показывает приложение).
+    buildFeatures {
+        buildConfig true
+    }
 }
 
 repositories {
