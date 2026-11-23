@@ -34,13 +34,16 @@ jobs:
 
       - name: Build Debug APK
         run: |
-          # Номер прогона, sha и время сборки уходят в APK — приложение
-          # показывает их, чтобы всегда было видно, какая сборка установлена.
-          export BUILD_NUMBER="${{ github.run_number }}"
+          # Номер версии = порядковый номер коммита в истории: он известен
+          # ДО коммита, поэтому пишется в его заголовок и всегда совпадает
+          # с приложением и релизом. Номер прогона CI — отдельная метрика.
+          export BUILD_NUMBER="$(git rev-list --count HEAD)"
+          export CI_RUN_NUMBER="${{ github.run_number }}"
           export GIT_SHA="${{ github.sha }}"
           export BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           # Передаём дальше всем шагам (в т.ч. отчёту и публикации релиза)
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
+          echo "CI_RUN_NUMBER=$CI_RUN_NUMBER" >> "$GITHUB_ENV"
           echo "GIT_SHA=$GIT_SHA" >> "$GITHUB_ENV"
           echo "BUILD_TIME=$BUILD_TIME" >> "$GITHUB_ENV"
           cd android
@@ -63,7 +66,8 @@ jobs:
           mkdir -p apk-info
           {
             echo "### Сборка"
-            echo "номер:    #${BUILD_NUMBER:-?}"
+            echo "номер:    #${BUILD_NUMBER:-?} (номер коммита в истории)"
+            echo "прогон CI: ${CI_RUN_NUMBER:-?}"
             echo "коммит:   ${GIT_SHA:-?}"
             echo "собрано:  ${BUILD_TIME:-?}"
             echo "релиз:    https://github.com/${GITHUB_REPOSITORY}/releases/tag/latest"
