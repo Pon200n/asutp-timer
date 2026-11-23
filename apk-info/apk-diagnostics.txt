@@ -1,8 +1,8 @@
 ### Сборка
-номер:    #1 (номер коммита в истории)
-прогон CI: 55
-коммит:   a4bfd42c2f7b4882e08b9900029e66c0a2201e4a
-собрано:  2026-11-23T13:59:12Z
+номер:    #65 (номер коммита в истории)
+прогон CI: 56
+коммит:   e09ef247497334e16b8aa11b7204c87ead4e68c9
+собрано:  2026-11-23T14:02:30Z
 релиз:    https://github.com/Pon200n/asutp-timer/releases/tag/latest
 
 ### Хвост лога сборки gradle
@@ -11,11 +11,11 @@
 > Task :capacitor-community-text-to-speech:prepareLintJarForPublish
 > Task :capacitor-community-text-to-speech:mergeDebugJavaResource
 > Task :capacitor-cordova-android-plugins:checkDebugAarMetadata
-> Task :capacitor-community-text-to-speech:syncDebugLibJars
-> Task :capacitor-community-text-to-speech:bundleDebugAar
 > Task :app:packageDebug
 > Task :app:createDebugApkListingFileRedirect
 > Task :app:assembleDebug
+> Task :capacitor-community-text-to-speech:syncDebugLibJars
+> Task :capacitor-community-text-to-speech:bundleDebugAar
 > Task :capacitor-community-text-to-speech:assembleDebug
 > Task :capacitor-cordova-android-plugins:stripDebugDebugSymbols NO-SOURCE
 > Task :capacitor-cordova-android-plugins:copyDebugJniLibsProjectAndLocalJars
@@ -68,9 +68,9 @@ BUILD SUCCESSFUL in 1m 53s
 185 actionable tasks: 185 executed
 
 ### Файл
--rw-r--r-- 1 runner runner 4618179 Nov 23 14:01 android/app/build/outputs/apk/debug/app-debug.apk
-sha256: 5cba09390449aa07648cf3a8192877505b8f0ab131d7fb5deedd5b323f030973
-байт:   4618179
+-rw-r--r-- 1 runner runner 4618183 Nov 23 14:04 android/app/build/outputs/apk/debug/app-debug.apk
+sha256: e1ae6aa09a607a849d1e80e47de8a073b649b3fc4fc71cbdb05b6665f3faf163
+байт:   4618183
 
 ### Целостность архива
     testing: org/apache/cordova/allowlist/index.html   OK
@@ -84,7 +84,7 @@ V2 Signer: certificate SHA-1 digest: 77337d2470865a3a250e0a99a6135fe5085dfd8b
 V2 Signer: certificate MD5 digest: 9153d739d06683a903317dc8545c8109
 
 ### badging (пакет, версии, разрешения)
-package: name='com.asutp.timer' versionCode='1' versionName='1.0.1' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
+package: name='com.asutp.timer' versionCode='65' versionName='1.0.65' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
 sdkVersion:'24'
 targetSdkVersion:'36'
 uses-permission: name='android.permission.INTERNET'
@@ -149,9 +149,9 @@ application-label-fi:'ASUTP Timer'
 
 ### Где лежит debug.keystore (нужно для кэша ключей)
 total 12
-drwxr-xr-x  2 runner runner 4096 Nov 23 13:59 .
-drwxr-x--- 16 runner runner 4096 Nov 23 14:00 ..
--rw-r--r--  1 runner runner  127 Nov 23 13:59 analytics.settings
+drwxr-xr-x  2 runner runner 4096 Nov 23 14:03 .
+drwxr-x--- 16 runner runner 4096 Nov 23 14:03 ..
+-rw-r--r--  1 runner runner  127 Nov 23 14:03 analytics.settings
 
 
 ### Ошибки сборки gradle (если есть)
@@ -161,8 +161,8 @@ drwxr-x--- 16 runner runner 4096 Nov 23 14:00 ..
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.asutp.timer"
-    android:versionCode="1"
-    android:versionName="1.0.1" >
+    android:versionCode="65"
+    android:versionName="1.0.65" >
 
     <uses-sdk
         android:minSdkVersion="24"
