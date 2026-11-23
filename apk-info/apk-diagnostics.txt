@@ -1,7 +1,7 @@
 ### Сборка
-номер:    #52
-коммит:   98bf8f7419c25f05269fe6c0ab0f0488f5ad1c17
-собрано:  2026-11-23T13:17:22Z
+номер:    #53
+коммит:   bad52c66543e364537c2c2925d799614ab3f50dd
+собрано:  2026-11-23T13:20:35Z
 релиз:    https://github.com/Pon200n/asutp-timer/releases/tag/latest
 
 ### Хвост лога сборки gradle
@@ -10,6 +10,9 @@
 > Task :capacitor-community-text-to-speech:prepareLintJarForPublish
 > Task :capacitor-community-text-to-speech:mergeDebugJavaResource
 > Task :capacitor-cordova-android-plugins:checkDebugAarMetadata
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect
+> Task :app:assembleDebug
 > Task :capacitor-community-text-to-speech:syncDebugLibJars
 > Task :capacitor-community-text-to-speech:bundleDebugAar
 > Task :capacitor-community-text-to-speech:assembleDebug
@@ -34,9 +37,6 @@
 > Task :capacitor-local-notifications:mergeDebugConsumerProguardFiles
 > Task :capacitor-local-notifications:prepareDebugArtProfile
 > Task :capacitor-local-notifications:prepareLintJarForPublish
-> Task :app:packageDebug
-> Task :app:createDebugApkListingFileRedirect
-> Task :app:assembleDebug
 > Task :capacitor-local-notifications:mergeDebugJavaResource
 > Task :capawesome-team-capacitor-android-foreground-service:checkDebugAarMetadata
 > Task :capacitor-local-notifications:syncDebugLibJars
@@ -63,13 +63,13 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 1m 22s
+BUILD SUCCESSFUL in 1m 43s
 185 actionable tasks: 185 executed
 
 ### Файл
--rw-r--r-- 1 runner runner 4617247 Nov 23 13:18 android/app/build/outputs/apk/debug/app-debug.apk
-sha256: 7a4a160cb8f9a56f8a6577d545c2c19f7009f9ae9a6f7d532e9634480a3bfb8f
-байт:   4617247
+-rw-r--r-- 1 runner runner 4617767 Nov 23 13:22 android/app/build/outputs/apk/debug/app-debug.apk
+sha256: d8bb85f29d642f05fe1549876651f302f265a5f408271283da73e76caac2c1fd
+байт:   4617767
 
 ### Целостность архива
     testing: org/apache/cordova/allowlist/index.html   OK
@@ -83,7 +83,7 @@ V2 Signer: certificate SHA-1 digest: 77337d2470865a3a250e0a99a6135fe5085dfd8b
 V2 Signer: certificate MD5 digest: 9153d739d06683a903317dc8545c8109
 
 ### badging (пакет, версии, разрешения)
-package: name='com.asutp.timer' versionCode='52' versionName='1.0.52' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
+package: name='com.asutp.timer' versionCode='53' versionName='1.0.53' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
 sdkVersion:'24'
 targetSdkVersion:'36'
 uses-permission: name='android.permission.INTERNET'
@@ -134,8 +134,8 @@ application-label-fi:'ASUTP Timer'
     14135  1981-01-01 01:01   assets/public/js/settings.js
     11766  1981-01-01 01:01   assets/public/js/shift.js
      5027  1981-01-01 01:01   assets/public/js/state.js
-     9690  1981-01-01 01:01   assets/public/js/swipe.js
-     7705  1981-01-01 01:01   assets/public/js/templates.js
+    10563  1981-01-01 01:01   assets/public/js/swipe.js
+     7558  1981-01-01 01:01   assets/public/js/templates.js
      1015  1981-01-01 01:01   assets/public/js/toast.js
      5525  1981-01-01 01:01   assets/public/js/ui.js
      2156  1981-01-01 01:01   assets/public/js/utils.js
@@ -148,20 +148,20 @@ application-label-fi:'ASUTP Timer'
 
 ### Где лежит debug.keystore (нужно для кэша ключей)
 total 12
-drwxr-xr-x  2 runner runner 4096 Nov 23 13:17 .
-drwxr-x--- 16 runner runner 4096 Nov 23 13:18 ..
--rw-r--r--  1 runner runner  127 Nov 23 13:17 analytics.settings
+drwxr-xr-x  2 runner runner 4096 Nov 23 13:21 .
+drwxr-x--- 16 runner runner 4096 Nov 23 13:21 ..
+-rw-r--r--  1 runner runner  127 Nov 23 13:21 analytics.settings
 
 
 ### Ошибки сборки gradle (если есть)
 
 ### Итоговый (merged) AndroidManifest.xml
-# android/app/build/intermediates/merged_manifest/debug/processDebugMainManifest/AndroidManifest.xml
+# android/app/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.asutp.timer"
-    android:versionCode="52"
-    android:versionName="1.0.52" >
+    android:versionCode="53"
+    android:versionName="1.0.53" >
 
     <uses-sdk
         android:minSdkVersion="24"
