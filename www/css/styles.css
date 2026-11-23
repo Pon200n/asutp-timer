@@ -1100,13 +1100,13 @@ details[open] > .details-body { grid-template-rows: 1fr; }
   justify-content: center;
   /* Заблокированное состояние: ползунок виден, но выглядит неактивным */
   background: linear-gradient(135deg,
-    rgba(255, 0, 60, 0.34) 0%,
-    rgba(255, 0, 60, 0.14) 50%,
-    rgba(255, 0, 60, 0.26) 100%);
-  color: rgba(255, 110, 140, 0.8);
+    rgba(255, 0, 60, 0.5) 0%,
+    rgba(255, 0, 60, 0.24) 50%,
+    rgba(255, 0, 60, 0.4) 100%);
+  color: rgba(255, 135, 158, 0.95);
   border: none;
-  border-left: 1px solid rgba(255, 0, 60, 0.36);
-  filter: drop-shadow(0 0 5px rgba(255, 0, 60, 0.3));
+  border-left: 1px solid rgba(255, 0, 60, 0.55);
+  filter: drop-shadow(0 0 7px rgba(255, 0, 60, 0.45));
   border-radius: 0;
   clip-path: none;
   cursor: default;
