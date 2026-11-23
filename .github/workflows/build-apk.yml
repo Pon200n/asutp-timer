@@ -13,6 +13,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          # Полная история: по ней считается номер версии (номер коммита).
+          # При shallow-клонировании счётчик давал бы 1.
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
