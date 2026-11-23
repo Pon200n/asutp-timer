@@ -973,9 +973,9 @@ details[open] > .details-body { grid-template-rows: 1fr; }
 
 /* Строка со сведениями о сборке в настройках */
 .build-info {
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px dashed rgba(37, 37, 56, .6);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(37, 37, 56, .6);
   font-size: 11px;
   color: var(--muted);
   letter-spacing: .04em;

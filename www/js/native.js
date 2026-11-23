@@ -84,6 +84,12 @@ App.Native = {
       }
     }.bind(this));
 
+    // Сведения о сборке: настройки инициализируются ДО native.init(),
+    // поэтому строку с номером сборки заполняем здесь, когда плагин готов.
+    step('buildInfo', function () {
+      if (App.Settings && App.Settings.renderBuildInfo) App.Settings.renderBuildInfo();
+    });
+
     step('foregroundService', function () {
       // Плагины из www/vendor уже зарегистрированы их скриптами — второй раз
       // registerPlugin ругается в консоль. Берём готовый прокси.
