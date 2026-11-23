@@ -145,12 +145,8 @@ App.Templates = {
     const inst = App.State.addBlockToChain(tplId);
     if (!inst) return;
     if (App.Shift) App.Shift.rebuild();
-    // Автосворачивание details "Добавить блок" после добавления
-    const det = document.getElementById('addBlocksDetails');
-    if (det && det.open) {
-      const summary = det.querySelector('summary');
-      if (summary) summary.click();  // вызовет наш плавный обработчик
-    }
+    // Список шаблонов НЕ сворачивается: блоки можно добавлять подряд,
+    // пока не истекли 30 секунд разблокировки.
   },
 
   onNewTemplate: function () {

@@ -367,6 +367,13 @@ details[open] > .details-body { grid-template-rows: 1fr; }
 .breaks-details summary::-webkit-details-marker,
 .templates-details summary::-webkit-details-marker { display: none; }
 
+/* Кнопка «+ Добавить блок в смену» и список шаблонов появляются только
+   после разблокировки ползунка в секции 03 — добавление и удаление
+   блоков разблокируются одним и тем же свайпом. */
+#chainCard:not(.unlocked) #addBlocksDetails {
+  display: none;
+}
+
 .add-blocks-details summary::before,
 .breaks-details summary::before,
 .templates-details summary::before {

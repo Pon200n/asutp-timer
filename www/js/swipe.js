@@ -66,13 +66,31 @@ App.Swipe = {
   },
 
   chainUnlock: function (card, textEl) {
+    // Один свайп разблокирует и удаление, и добавление блоков.
     card.classList.add('unlocked');
-    if (textEl) textEl.textContent = 'УДАЛЕНИЕ РАЗБЛОКИРОВАНО (15 сек)';
+    if (textEl) textEl.textContent = 'ДОБАВЛЕНИЕ И УДАЛЕНИЕ РАЗБЛОКИРОВАНО (30 сек)';
+
+    // Список шаблонов разворачивается сам: кликаем по summary программно,
+    // чтобы отработала CSS-анимация открытия.
+    const det = document.getElementById('addBlocksDetails');
+    if (det && !det.open) {
+      setTimeout(() => {
+        const summary = det.querySelector('summary');
+        if (summary) summary.click();
+      }, 20);
+    }
+
     if (this.unlockTimer) clearTimeout(this.unlockTimer);
     this.unlockTimer = setTimeout(() => {
       card.classList.remove('unlocked');
+      // Список шаблонов сворачивается плавно — тем же кликом по summary.
+      const d = document.getElementById('addBlocksDetails');
+      if (d && d.open) {
+        const summary = d.querySelector('summary');
+        if (summary) summary.click();
+      }
       if (textEl) textEl.textContent = 'Свайп вправо: разблокировать удаление ➔';
-    }, 15000);
+    }, 30000);
   },
 
   // ---------- СВАЙП-УДАЛЕНИЕ БЛОКА (тянем ⟵ влево) ----------
