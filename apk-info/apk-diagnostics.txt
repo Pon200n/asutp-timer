@@ -1,43 +1,61 @@
 ### Сборка
-номер:    #49
-коммит:   98d4ddd08e9922f7c913361a50b9fa217d4d4c45
-собрано:  2026-11-23T11:36:14Z
+номер:    #50
+коммит:   e7cd13ec22773e18515de0c36a85ab9fd829d7e5
+собрано:  2026-11-23T11:41:22Z
 релиз:    https://github.com/Pon200n/asutp-timer/releases/tag/latest
 
 ### Хвост лога сборки gradle
-Downloading https://services.gradle.org/distributions/gradle-8.14.3-all.zip
-.....................10%.....................20%......................30%.....................40%......................50%.....................60%.....................70%......................80%.....................90%......................100%
-
-Welcome to Gradle 8.14.3!
-
-Here are the highlights of this release:
- - Java 24 support
- - GraalVM Native Image toolchain selection
- - Enhancements to test reporting
- - Build Authoring improvements
-
-For more details see https://docs.gradle.org/8.14.3/release-notes.html
-
-Starting a Gradle Daemon (subsequent builds will be faster)
-
-> Configure project :app
-WARNING: Using flatDir should be avoided because it doesn't support any meta-data formats.
+> Task :capacitor-community-text-to-speech:mergeDebugConsumerProguardFiles
+> Task :capacitor-community-text-to-speech:prepareDebugArtProfile
+> Task :capacitor-community-text-to-speech:prepareLintJarForPublish
+> Task :capacitor-community-text-to-speech:mergeDebugJavaResource
+> Task :capacitor-cordova-android-plugins:checkDebugAarMetadata
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect
+> Task :app:assembleDebug
+> Task :capacitor-community-text-to-speech:syncDebugLibJars
+> Task :capacitor-community-text-to-speech:bundleDebugAar
+> Task :capacitor-community-text-to-speech:assembleDebug
+> Task :capacitor-cordova-android-plugins:stripDebugDebugSymbols NO-SOURCE
+> Task :capacitor-cordova-android-plugins:copyDebugJniLibsProjectAndLocalJars
+> Task :capacitor-cordova-android-plugins:extractDebugAnnotations
+> Task :capacitor-cordova-android-plugins:extractDeepLinksForAarDebug
+> Task :capacitor-cordova-android-plugins:mergeDebugGeneratedProguardFiles
+> Task :capacitor-cordova-android-plugins:mergeDebugConsumerProguardFiles
+> Task :capacitor-cordova-android-plugins:prepareDebugArtProfile
+> Task :capacitor-cordova-android-plugins:prepareLintJarForPublish
+> Task :capacitor-cordova-android-plugins:mergeDebugJavaResource
+> Task :capacitor-local-notifications:checkDebugAarMetadata
+> Task :capacitor-cordova-android-plugins:syncDebugLibJars
+> Task :capacitor-cordova-android-plugins:bundleDebugAar
+> Task :capacitor-cordova-android-plugins:assembleDebug
+> Task :capacitor-local-notifications:stripDebugDebugSymbols NO-SOURCE
+> Task :capacitor-local-notifications:copyDebugJniLibsProjectAndLocalJars
+> Task :capacitor-local-notifications:extractDebugAnnotations
+> Task :capacitor-local-notifications:extractDeepLinksForAarDebug
+> Task :capacitor-local-notifications:mergeDebugGeneratedProguardFiles
+> Task :capacitor-local-notifications:mergeDebugConsumerProguardFiles
+> Task :capacitor-local-notifications:prepareDebugArtProfile
+> Task :capacitor-local-notifications:prepareLintJarForPublish
+> Task :capawesome-team-capacitor-android-foreground-service:checkDebugAarMetadata
+> Task :capacitor-local-notifications:mergeDebugJavaResource
+> Task :capawesome-team-capacitor-android-foreground-service:stripDebugDebugSymbols NO-SOURCE
+> Task :capacitor-local-notifications:syncDebugLibJars
+> Task :capacitor-local-notifications:bundleDebugAar
+> Task :capacitor-local-notifications:assembleDebug
+> Task :capawesome-team-capacitor-android-foreground-service:copyDebugJniLibsProjectAndLocalJars
+> Task :capawesome-team-capacitor-android-foreground-service:extractDebugAnnotations
+> Task :capawesome-team-capacitor-android-foreground-service:extractDeepLinksForAarDebug
+> Task :capawesome-team-capacitor-android-foreground-service:mergeDebugGeneratedProguardFiles
+> Task :capawesome-team-capacitor-android-foreground-service:mergeDebugConsumerProguardFiles
+> Task :capawesome-team-capacitor-android-foreground-service:prepareDebugArtProfile
+> Task :capawesome-team-capacitor-android-foreground-service:prepareLintJarForPublish
+> Task :capawesome-team-capacitor-android-foreground-service:mergeDebugJavaResource
+> Task :capawesome-team-capacitor-android-foreground-service:syncDebugLibJars
+> Task :capawesome-team-capacitor-android-foreground-service:bundleDebugAar
+> Task :capawesome-team-capacitor-android-foreground-service:assembleDebug
 
 [Incubating] Problems report is available at: file:///home/runner/work/asutp-timer/asutp-timer/android/build/reports/problems/problems-report.html
-
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-A problem occurred configuring project ':app'.
->                     defaultConfig contains custom BuildConfig fields, but the feature is disabled.
-                      To enable the feature, add the following to your module-level build.gradle:
-  `android.buildFeatures.buildConfig = true`
-
-* Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
-> Run with --scan to get full insights.
-> Get more help at https://help.gradle.org.
 
 Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
 
@@ -45,7 +63,303 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD FAILED in 33s
+BUILD SUCCESSFUL in 1m 32s
+185 actionable tasks: 185 executed
 
 ### Файл
-ls: cannot access 'android/app/build/outputs/apk/debug/app-debug.apk': No such file or directory
+-rw-r--r-- 1 runner runner 4617111 Nov 23 11:42 android/app/build/outputs/apk/debug/app-debug.apk
+sha256: b7c2b60d916392b49fc591953c4dfd4c7508469bbaae4bc77a98b1f5a532a328
+байт:   4617111
+
+### Целостность архива
+    testing: org/apache/cordova/allowlist/index.html   OK
+    testing: org/apache/cordova/allowlist/index2.html   OK
+No errors detected in compressed data of android/app/build/outputs/apk/debug/app-debug.apk.
+
+### Подпись
+V2 Signer: certificate DN: C=US, O=Android, CN=Android Debug
+V2 Signer: certificate SHA-256 digest: db9c07a3d5aa07680eeaef373c3e0ff33b3c3f7dd7862fc9c5d55c176d7d9b32
+V2 Signer: certificate SHA-1 digest: 77337d2470865a3a250e0a99a6135fe5085dfd8b
+V2 Signer: certificate MD5 digest: 9153d739d06683a903317dc8545c8109
+
+### badging (пакет, версии, разрешения)
+package: name='com.asutp.timer' versionCode='50' versionName='1.0.50' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
+sdkVersion:'24'
+targetSdkVersion:'36'
+uses-permission: name='android.permission.INTERNET'
+uses-permission: name='android.permission.POST_NOTIFICATIONS'
+uses-permission: name='android.permission.SCHEDULE_EXACT_ALARM'
+uses-permission: name='android.permission.USE_FULL_SCREEN_INTENT'
+uses-permission: name='android.permission.WAKE_LOCK'
+uses-permission: name='android.permission.VIBRATE'
+uses-permission: name='android.permission.RECEIVE_BOOT_COMPLETED'
+uses-permission: name='android.permission.FOREGROUND_SERVICE'
+uses-permission: name='android.permission.FOREGROUND_SERVICE_SPECIAL_USE'
+uses-permission: name='android.permission.SYSTEM_ALERT_WINDOW'
+uses-permission: name='com.asutp.timer.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'
+application-label:'ASUTP Timer'
+application-label-af:'ASUTP Timer'
+application-label-am:'ASUTP Timer'
+application-label-ar:'ASUTP Timer'
+application-label-as:'ASUTP Timer'
+application-label-az:'ASUTP Timer'
+application-label-be:'ASUTP Timer'
+application-label-bg:'ASUTP Timer'
+application-label-bn:'ASUTP Timer'
+application-label-bs:'ASUTP Timer'
+application-label-ca:'ASUTP Timer'
+application-label-cs:'ASUTP Timer'
+application-label-da:'ASUTP Timer'
+application-label-de:'ASUTP Timer'
+application-label-el:'ASUTP Timer'
+application-label-en-AU:'ASUTP Timer'
+application-label-en-CA:'ASUTP Timer'
+application-label-en-GB:'ASUTP Timer'
+application-label-en-IN:'ASUTP Timer'
+application-label-en-XC:'ASUTP Timer'
+application-label-es:'ASUTP Timer'
+application-label-es-US:'ASUTP Timer'
+application-label-et:'ASUTP Timer'
+application-label-eu:'ASUTP Timer'
+application-label-fa:'ASUTP Timer'
+application-label-fi:'ASUTP Timer'
+
+### Веб-ресурсы и звуки внутри APK
+    17271  1981-01-01 01:01   assets/public/index.html
+    18302  1981-01-01 01:01   assets/public/js/alerts.js
+     2131  1981-01-01 01:01   assets/public/js/config.js
+     4949  1981-01-01 01:01   assets/public/js/locks.js
+    17585  1981-01-01 01:01   assets/public/js/native.js
+     4671  1981-01-01 01:01   assets/public/js/scheduler.js
+    14135  1981-01-01 01:01   assets/public/js/settings.js
+    11766  1981-01-01 01:01   assets/public/js/shift.js
+     5027  1981-01-01 01:01   assets/public/js/state.js
+     9690  1981-01-01 01:01   assets/public/js/swipe.js
+     7705  1981-01-01 01:01   assets/public/js/templates.js
+     1015  1981-01-01 01:01   assets/public/js/toast.js
+     5525  1981-01-01 01:01   assets/public/js/ui.js
+     2156  1981-01-01 01:01   assets/public/js/utils.js
+     8741  1981-01-01 01:01   assets/public/vendor/capacitor.js
+     1976  1981-01-01 01:01   assets/public/vendor/foreground-service.js
+    10613  1981-01-01 01:01   assets/public/vendor/local-notifications.js
+     4572  1981-01-01 01:01   assets/public/vendor/text-to-speech.js
+    48554  1981-01-01 01:01   res/raw/asutp_alarm.wav
+   308744  1981-01-01 01:01   res/raw/asutp_alarm_loop.wav
+
+### Где лежит debug.keystore (нужно для кэша ключей)
+total 12
+drwxr-xr-x  2 runner runner 4096 Nov 23 11:41 .
+drwxr-x--- 16 runner runner 4096 Nov 23 11:42 ..
+-rw-r--r--  1 runner runner  127 Nov 23 11:41 analytics.settings
+
+
+### Ошибки сборки gradle (если есть)
+
+### Итоговый (merged) AndroidManifest.xml
+# android/app/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.asutp.timer"
+    android:versionCode="50"
+    android:versionName="1.0.50" >
+
+    <uses-sdk
+        android:minSdkVersion="24"
+        android:targetSdkVersion="36" />
+
+    <!-- Permissions -->
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Уведомления и точные будильники -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!--
+     USE_EXACT_ALARM не используем: это разрешение существует только с Android 13,
+     выдаётся автоматически и блокирует публикацию в Google Play. Точность
+     будильников обеспечивает SCHEDULE_EXACT_ALARM (на Android 12+ пользователь
+     выдаёт его один раз в настройках — приложение проверяет это при старте).
+    -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+
+    <!-- Работа в фоне, пробуждение и вибрация -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!--
+     MIUI не даёт выйти поверх блокировки без этого разрешения:
+     в логах было "Show when locked PermissionDenied". Разрешение выдаётся
+     пользователем один раз в настройках приложения.
+    -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
+
+    <permission
+        android:name="com.asutp.timer.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        android:protectionLevel="signature" />
+
+    <uses-permission android:name="com.asutp.timer.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+
+    <application
+        android:allowBackup="true"
+        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+        android:debuggable="true"
+        android:extractNativeLibs="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name="com.asutp.timer.MainActivity"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:exported="true"
+            android:label="@string/title_activity_main"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:showWhenLocked="true"
+            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:turnScreenOn="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.asutp.timer.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true" >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!--
+             Нативный экран тревоги — рисуется без WebView.
+             Нужен, когда обычный MainActivity недоступен: после перезагрузки
+             телефона, пока он не разблокирован (direct boot), система не может
+             запустить Activity, и полноэкранное намерение проваливалось.
+             Если пользователь разблокирован — экран перенаправляет в MainActivity.
+        -->
+        <activity
+            android:name="com.asutp.timer.AsutpAlarmActivity"
+            android:directBootAware="true"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:showWhenLocked="true"
+            android:taskAffinity=""
+            android:theme="@style/AlarmTheme"
+            android:turnScreenOn="true" />
+
+        <!--
+             Live-Bar смены: своя foreground-служба с системным хронометром
+             и полосой прогресса.
+        -->
+        <service
+            android:name="com.asutp.timer.AsutpLiveService"
+            android:directBootAware="true"
+            android:exported="false"
+            android:foregroundServiceType="specialUse" >
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Системные будильники смены АСУТП: постоянное уведомление с текущей операцией, обратным отсчётом и прогрессом" />
+        </service>
+
+        <!--
+             Системные будильники смены (AlarmManager → полноэкранное уведомление).
+             directBootAware: тревога должна сработать и на заблокированном
+             телефоне (после перезагрузки, до первого касания).
+        -->
+        <receiver
+            android:name="com.asutp.timer.AsutpAlarmReceiver"
+            android:directBootAware="true"
+            android:exported="false" />
+
+        <!--
+             После перезагрузки телефона система будильники не восстанавливает —
+             поднимаем их сами, из сохранённого расписания.
+             directBootAware обязателен: без него система не доставляет
+             LOCKED_BOOT_COMPLETED, а хранилище приложения (/data/user/0)
+             зашифровано до разблокировки телефона.
+        -->
+        <receiver
+            android:name="com.asutp.timer.AsutpBootReceiver"
+            android:directBootAware="true"
+            android:enabled="true"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.USER_UNLOCKED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name="com.capacitorjs.plugins.localnotifications.TimedNotificationPublisher" />
+        <receiver android:name="com.capacitorjs.plugins.localnotifications.NotificationDismissReceiver" />
+        <receiver
+            android:name="com.capacitorjs.plugins.localnotifications.LocalNotificationRestoreReceiver"
+            android:directBootAware="true"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
+        <provider
+            android:name="com.capacitorjs.plugins.localnotifications.LocalNotificationsAssetProvider"
+            android:authorities="com.asutp.timer.localnotifications.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true" >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/localnotifications_provider_paths" />
+        </provider>
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="com.asutp.timer.androidx-startup"
+            android:exported="false" >
+            <meta-data
+                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+                android:value="androidx.startup" />
+            <meta-data
+                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+                android:value="androidx.startup" />
+            <meta-data
+                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+                android:value="androidx.startup" />
+        </provider>
+
+        <receiver
+            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+            android:directBootAware="false"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.DUMP" >
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>
