@@ -678,6 +678,10 @@ public class AsutpAlarmPlugin extends Plugin {
             out.put("kind", o.optString("kind", ""));
             out.put("mode", o.optString("mode", ""));
             out.put("eventIdx", o.optInt("eventIdx", -1));
+            // Режим уведомления тревоги: постоя��ное или смахиваемое,
+            // и гасит ли смахивание тревогу.
+            out.put("persistent", o.has("persistent") ? o.optBoolean("persistent", true) : true);
+            out.put("swipeAck", o.optBoolean("swipeAck", false));
         } catch (JSONException e) {
             Log.e(TAG, "битый payload: " + e.getMessage());
         }
