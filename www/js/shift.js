@@ -29,6 +29,8 @@ App.Shift = {
   },
 
   rebuild: function (force) {
+    console.log('[Shift] rebuild force=' + force + ' ← ' +
+      new Error().stack.split('\n').slice(1, 4).join(' ← '));
     const startMs = App.State.isRunning && App.State.shiftStartMs
       ? App.State.shiftStartMs
       : this.getSelectedStartMs();

@@ -181,6 +181,8 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
         } catch (JSONException e) {
             Log.e(TAG, "битый payload: " + e.getMessage());
         }
+        Log.i(TAG, "уведомление id=" + id + " persistent=" + persistent
+                + " swipeAck=" + swipeAck + " payload=" + payload);
 
         ensureChannel(ctx);
 
