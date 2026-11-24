@@ -215,7 +215,13 @@ App.Native = {
           kind: a.kind,
           mode: a.mode,
           voice: a.voice,
-          eventIdx: (a.eventIdx === undefined ? -1 : a.eventIdx)
+          eventIdx: (a.eventIdx === undefined ? -1 : a.eventIdx),
+          chainIdx: a.chainIdx,
+          // Режим уведомления тревоги: постоянное (не смахивается) или
+          // обычное (нужно браслету/часам). И гасит ли смахивание тревогу.
+          // Без этих полей нативная часть ставит setOngoing(true) по умолчанию.
+          persistent: (a.persistent === undefined ? true : a.persistent),
+          swipeAck: (a.swipeAck === undefined ? false : a.swipeAck)
         });
       }
       return this.alarm.scheduleAlerts({ alerts: list })
@@ -251,7 +257,9 @@ App.Native = {
           kind: a.kind,
           mode: a.mode,
           eventIdx: (a.eventIdx === undefined ? -1 : a.eventIdx),
-          chainIdx: (a.chainIdx === undefined ? -1 : a.chainIdx)
+          chainIdx: (a.chainIdx === undefined ? -1 : a.chainIdx),
+          persistent: (a.persistent === undefined ? true : a.persistent),
+          swipeAck: (a.swipeAck === undefined ? false : a.swipeAck)
         }
       });
     }
