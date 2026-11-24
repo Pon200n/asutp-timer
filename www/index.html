@@ -192,6 +192,28 @@
         <button class="btn-small" id="btnOverlayPerm">Проверить / Разрешить</button>
       </div>
       <button class="btn-save-lock" id="setSaveBtn" style="display:none;">✓ СОХРАНИТЬ И ЗАКРЫТЬ</button>
+
+      <!-- Тестовые уведомления: проверка доставки на браслет/часы.
+           Рабочую тревогу не затрагивают (свои id и свои каналы). -->
+      <details class="adv-details" id="testNotifDetails">
+        <summary>ТЕСТ ОПОВЕЩЕНИЙ (браслет/часы)</summary>
+        <div class="details-body">
+          <div class="details-inner">
+            <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:10px;">
+              Нажмите все пять подряд и посмотрите, какие заголовки появятся на
+              браслете — так станет ясно, что именно мешает доставке.
+            </div>
+            <div class="row" style="flex-wrap:wrap;gap:6px;">
+              <button class="btn-small" data-test-notif="1">1 Как сейчас</button>
+              <button class="btn-small" data-test-notif="2">2 Без ONGOING</button>
+              <button class="btn-small" data-test-notif="3">3 Без категории тревоги</button>
+              <button class="btn-small" data-test-notif="4">4 Без полноэкранного</button>
+              <button class="btn-small" data-test-notif="5">5 Обычное</button>
+              <button class="btn-small btn-red" id="btnClearTestNotif">Сбросить тестовые</button>
+            </div>
+          </div>
+        </div>
+      </details>
     </div>
 
     <div class="card" id="breaksCard">

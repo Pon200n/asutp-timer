@@ -160,6 +160,21 @@ App.Native = {
     return this.alarm.getBuildInfo().catch(function () { return null; });
   },
 
+  // ---------- ТЕСТОВЫЕ УВЕДОМЛЕНИЯ (проверка доставки на браслет/часы) ----------
+
+  /** Показать тестовое уведомление: 1..5, у каждого свой заголовок и свой id. */
+  testNotification: function (variant) {
+    if (!this.alarmAvailable) return Promise.resolve(null);
+    return this.alarm.postTestNotification({ variant: variant })
+      .catch(function () { return null; });
+  },
+
+  /** Убрать тестовые уведомления. */
+  clearTestNotifications: function () {
+    if (!this.alarmAvailable) return Promise.resolve(null);
+    return this.alarm.clearTestNotifications().catch(function () { return null; });
+  },
+
   checkExactAlarms: function () {
     if (!this.ln || !this.ln.checkExactNotificationSetting) return Promise.resolve(null);
     return this.ln.checkExactNotificationSetting().then(function (res) {

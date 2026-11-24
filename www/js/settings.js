@@ -196,6 +196,21 @@ App.Settings = {
       this.checkOverlayPermission();
       return;
     }
+    // Кнопки тестовых уведомлений (проверка доставки на браслет/часы)
+    if (t.dataset && t.dataset.testNotif) {
+      const v = parseInt(t.dataset.testNotif, 10);
+      if (App.Native) {
+        App.Native.testNotification(v).then(function (res) {
+          if (res && res.title && App.Toast) App.Toast.show('Отправлено: ' + res.title);
+        });
+      }
+      return;
+    }
+    if (t.id === 'btnClearTestNotif') {
+      if (App.Native) App.Native.clearTestNotifications();
+      if (App.Toast) App.Toast.show('Тестовые уведомления убраны');
+      return;
+    }
   },
 
   // MIUI требует «Отображение поверх других приложений», иначе тревога

@@ -1,15 +1,22 @@
 package com.asutp.timer;
 
 import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.media.AudioAttributes;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
+
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
@@ -678,6 +685,141 @@ public class AsutpAlarmPlugin extends Plugin {
     }
 
     /** Передать событие в JS, если приложение живо. */
+    // ---------- ТЕСТОВЫЕ УВЕДОМЛЕНИЯ (проверка доставки на браслет/часы) ----------
+
+    /** Свои id, чтобы не путать с тревогой (4243) и Live-Bar (4242). */
+    private static final int[] TEST_IDS = {9001, 9002, 9003, 9004, 9005};
+
+    private static final String[] TEST_TITLES = {
+        "ТЕСТ 1: как сейчас",
+        "ТЕСТ 2: без ONGOING",
+        "ТЕСТ 3: без категории тревоги",
+        "ТЕСТ 4: без полноэкранного намерения",
+        "ТЕСТ 5: максимально обычное"
+    };
+
+    private static final String CH_TEST_ALARM = "asutp_test_alarm";
+    private static final String CH_TEST_NORMAL = "asutp_test_normal";
+    private static final String CH_TEST_SILENT = "asutp_test_silent";
+
+    private static String testChannel(int variant) {
+        switch (variant) {
+            case 1:
+            case 2: return CH_TEST_ALARM;
+            case 3:
+            case 4: return CH_TEST_NORMAL;
+            default: return CH_TEST_SILENT;
+        }
+    }
+
+    /**
+     * Тестовое уведомление: пять вариантов, у каждого свой заголовок.
+     * Нужно, чтобы выяснить, какое уведомление доходит до браслета: на
+     * экране часов видно заголовок — значит видно и какой вариант дошёл.
+     * Рабочую тревогу это не затрагивает: свои id и свои каналы.
+     */
+    @PluginMethod
+    public void postTestNotification(PluginCall call) {
+        try {
+            Context ctx = getContext();
+            int variant = call.getInt("variant", 1);
+            if (variant < 1) variant = 1;
+            if (variant > 5) variant = 5;
+            int idx = variant - 1;
+            String channel = testChannel(variant);
+            ensureTestChannel(ctx, channel);
+            int id = TEST_IDS[idx];
+
+            Intent open = new Intent(ctx, MainActivity.class);
+            open.setAction(Intent.ACTION_MAIN);
+            open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            PendingIntent contentPi = testContentIntent(ctx, id, open);
+
+            NotificationCompat.Builder b = new NotificationCompat.Builder(ctx, channel)
+                    .setSmallIcon(R.drawable.ic_stat_asutp)
+                    .setContentTitle(TEST_TITLES[idx])
+                    .setContentText("Проверка доставки на браслет/часы")
+                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                    .setContentIntent(contentPi);
+
+            if (variant == 1 || variant == 2) {
+                // Как настоящая тревога: категория тревоги + полноэкранное намерение.
+                b.setCategory(NotificationCompat.CATEGORY_ALARM);
+                b.setPriority(NotificationCompat.PRIORITY_MAX);
+                b.setFullScreenIntent(contentPi, true);
+            } else {
+                b.setCategory(NotificationCompat.CATEGORY_EVENT);
+                b.setPriority(NotificationCompat.PRIORITY_DEFAULT);
+            }
+            if (variant == 1) {
+                b.setOngoing(true);          // неудаляемое — как сейчас
+            } else {
+                b.setOngoing(false);         // смахиваемое
+                b.setAutoCancel(true);
+            }
+
+            NotificationManagerCompat.from(ctx).notify(id, b.build());
+            call.resolve(new JSObject().put("id", id).put("title", TEST_TITLES[idx]));
+        } catch (Exception e) {
+            call.reject("Ошибка тестового уведомления: " + e.getMessage());
+        }
+    }
+
+    /** Убрать все тестовые уведомления. */
+    @PluginMethod
+    public void clearTestNotifications(PluginCall call) {
+        try {
+            Context ctx = getContext();
+            NotificationManagerCompat nm = NotificationManagerCompat.from(ctx);
+            for (int id : TEST_IDS) nm.cancel(id);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("Ошибка очистки тестовых уведомлений: " + e.getMessage());
+        }
+    }
+
+    private static PendingIntent testContentIntent(Context ctx, int id, Intent open) {
+        return PendingIntent.getActivity(ctx, id, open,
+                PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    /** Каналы для тестов: важность и звук задаются один раз при создании. */
+    private static void ensureTestChannel(Context ctx, String channelId) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+        try {
+            NotificationManager nm =
+                    (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm == null) return;
+            NotificationChannel ch;
+            if (CH_TEST_ALARM.equals(channelId)) {
+                ch = new NotificationChannel(channelId, "Тест: тревога",
+                        NotificationManager.IMPORTANCE_HIGH);
+                Uri sound = Uri.parse("android.resource://" + ctx.getPackageName()
+                        + "/" + R.raw.asutp_alarm);
+                AudioAttributes attrs = new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build();
+                ch.setSound(sound, attrs);
+                ch.enableVibration(true);
+            } else if (CH_TEST_NORMAL.equals(channelId)) {
+                ch = new NotificationChannel(channelId, "Тест: обычное",
+                        NotificationManager.IMPORTANCE_DEFAULT);
+                ch.setSound(null, null);
+                ch.enableVibration(false);
+            } else {
+                ch = new NotificationChannel(channelId, "Тест: тихое",
+                        NotificationManager.IMPORTANCE_MIN);
+                ch.setSound(null, null);
+                ch.enableVibration(false);
+            }
+            ch.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+            nm.createNotificationChannel(ch);
+        } catch (Exception e) {
+            Log.e(TAG, "тестовый канал: " + e.getMessage());
+        }
+    }
+
     static void emit(String event, String payload) {
         AsutpAlarmPlugin p = instance;
         if (p == null || payload == null) return;

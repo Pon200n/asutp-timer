@@ -301,6 +301,41 @@ button.btn-small { padding: 8px 10px; font-size: 11px; }
 details[open] > .details-body { grid-template-rows: 1fr; }
 .details-inner { overflow: hidden; min-height: 0; }
 
+/* ===== РАСШИРЁННЫЕ НАСТРОЙКИ / ТЕСТЫ (приглушённый тон) ===== */
+.adv-details {
+  margin-top: 12px;
+  border: 1px dashed #2c3550;
+  border-radius: 4px;
+  background: #08080e;
+}
+.adv-details summary {
+  position: relative;
+  list-style: none;
+  cursor: pointer;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+}
+.adv-details summary::-webkit-details-marker { display: none; }
+.adv-details summary::before {
+  content: '▸';
+  display: inline-block;
+  font-size: 1.2em;
+  font-weight: 900;
+  line-height: 1;
+  transition: transform .22s cubic-bezier(.4, 0, .2, 1);
+}
+.adv-details[open] summary::before { transform: rotate(90deg); }
+.adv-details[open] summary { color: var(--cyan); }
+.adv-details .details-body { padding: 0 14px 12px; }
+
 /* ===== СЕЙЧАС ===== */
 .now-details summary {
   position: relative;
