@@ -1,8 +1,8 @@
 ### Сборка
-номер:    #75 (номер коммита в истории)
-прогон CI: 60
-коммит:   1eced75faf79bff67def69d7c9be40ab50d73887
-собрано:  2026-11-24T13:57:49Z
+номер:    #76 (номер коммита в истории)
+прогон CI: 61
+коммит:   7db52bf8e196f8cc92f28a6b8d114208122896ac
+собрано:  2026-11-24T14:13:14Z
 релиз:    https://github.com/Pon200n/asutp-timer/releases/tag/latest
 
 ### Хвост лога сборки gradle
@@ -12,9 +12,6 @@
 > Task :capacitor-community-text-to-speech:mergeDebugJavaResource
 > Task :capacitor-cordova-android-plugins:checkDebugAarMetadata
 > Task :capacitor-community-text-to-speech:syncDebugLibJars
-> Task :app:packageDebug
-> Task :app:createDebugApkListingFileRedirect
-> Task :app:assembleDebug
 > Task :capacitor-community-text-to-speech:bundleDebugAar
 > Task :capacitor-community-text-to-speech:assembleDebug
 > Task :capacitor-cordova-android-plugins:stripDebugDebugSymbols NO-SOURCE
@@ -32,6 +29,9 @@
 > Task :capacitor-cordova-android-plugins:assembleDebug
 > Task :capacitor-local-notifications:stripDebugDebugSymbols NO-SOURCE
 > Task :capacitor-local-notifications:copyDebugJniLibsProjectAndLocalJars
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect
+> Task :app:assembleDebug
 > Task :capacitor-local-notifications:extractDebugAnnotations
 > Task :capacitor-local-notifications:extractDeepLinksForAarDebug
 > Task :capacitor-local-notifications:mergeDebugGeneratedProguardFiles
@@ -64,13 +64,13 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 1m 31s
+BUILD SUCCESSFUL in 1m 32s
 185 actionable tasks: 185 executed
 
 ### Файл
--rw-r--r-- 1 runner runner 4621963 Nov 24 13:59 android/app/build/outputs/apk/debug/app-debug.apk
-sha256: d299d6133caa41aa05381bb382dd143260c0fe904b71f158978dbba745c659f0
-байт:   4621963
+-rw-r--r-- 1 runner runner 4624323 Nov 24 14:14 android/app/build/outputs/apk/debug/app-debug.apk
+sha256: 355286d960ceb995c79f07a49f03698046aeceffd3e84ab000765c2f9947c4c3
+байт:   4624323
 
 ### Целостность архива
     testing: org/apache/cordova/allowlist/index.html   OK
@@ -84,7 +84,7 @@ V2 Signer: certificate SHA-1 digest: 77337d2470865a3a250e0a99a6135fe5085dfd8b
 V2 Signer: certificate MD5 digest: 9153d739d06683a903317dc8545c8109
 
 ### badging (пакет, версии, разрешения)
-package: name='com.asutp.timer' versionCode='66' versionName='1.0.75' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
+package: name='com.asutp.timer' versionCode='66' versionName='1.0.76' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
 sdkVersion:'24'
 targetSdkVersion:'36'
 uses-permission: name='android.permission.INTERNET'
@@ -126,13 +126,13 @@ application-label-fa:'ASUTP Timer'
 application-label-fi:'ASUTP Timer'
 
 ### Веб-ресурсы и звуки внутри APK
-    17988  1981-01-01 01:01   assets/public/index.html
+    19525  1981-01-01 01:01   assets/public/index.html
     18959  1981-01-01 01:01   assets/public/js/alerts.js
      2758  1981-01-01 01:01   assets/public/js/config.js
      4949  1981-01-01 01:01   assets/public/js/locks.js
-    17964  1981-01-01 01:01   assets/public/js/native.js
+    18701  1981-01-01 01:01   assets/public/js/native.js
      4671  1981-01-01 01:01   assets/public/js/scheduler.js
-    14878  1981-01-01 01:01   assets/public/js/settings.js
+    15534  1981-01-01 01:01   assets/public/js/settings.js
     11891  1981-01-01 01:01   assets/public/js/shift.js
      5027  1981-01-01 01:01   assets/public/js/state.js
     10542  1981-01-01 01:01   assets/public/js/swipe.js
@@ -149,20 +149,20 @@ application-label-fi:'ASUTP Timer'
 
 ### Где лежит debug.keystore (нужно для кэша ключей)
 total 12
-drwxr-xr-x  2 runner runner 4096 Nov 24 13:58 .
-drwxr-x--- 16 runner runner 4096 Nov 24 13:58 ..
--rw-r--r--  1 runner runner  127 Nov 24 13:58 analytics.settings
+drwxr-xr-x  2 runner runner 4096 Nov 24 14:13 .
+drwxr-x--- 16 runner runner 4096 Nov 24 14:14 ..
+-rw-r--r--  1 runner runner  127 Nov 24 14:13 analytics.settings
 
 
 ### Ошибки сборки gradle (если есть)
 
 ### Итоговый (merged) AndroidManifest.xml
-# android/app/build/intermediates/merged_manifest/debug/processDebugMainManifest/AndroidManifest.xml
+# android/app/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.asutp.timer"
     android:versionCode="66"
-    android:versionName="1.0.75" >
+    android:versionName="1.0.76" >
 
     <uses-sdk
         android:minSdkVersion="24"
