@@ -18,7 +18,12 @@ android {
         applicationId "com.asutp.timer"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode Math.max(1, buildNumber)
+        // versionCode ПОСТОЯННЫЙ: номер сборки живёт в versionName.
+        // Так эталонный APK можно поставить ПОВЕРХ любой новой сборки —
+        // установка той же версии разрешена системой, а понижение версии
+        // (versionCode меньше установленного) блокируется. Это и есть
+        // возможность откатиться на стабильную сборку прямо с телефона.
+        versionCode 66
         versionName "1.0." + versionSuffix
         buildConfigField "String", "GIT_SHA", "\"${shortSha}\""
         buildConfigField "String", "BUILD_NUMBER", "\"${buildNumber}\""
