@@ -1,8 +1,8 @@
 ### Сборка
-номер:    #66 (номер коммита в истории)
-прогон CI: 57
-коммит:   81d52a142518a73c197983d2f3dee1bc17c9ba08
-собрано:  2026-11-23T14:34:32Z
+номер:    #73 (номер коммита в истории)
+прогон CI: 58
+коммит:   bf0f74267f69598da1e48037f80959e0b7ab59c8
+собрано:  2026-11-24T12:48:41Z
 релиз:    https://github.com/Pon200n/asutp-timer/releases/tag/latest
 
 ### Хвост лога сборки gradle
@@ -26,8 +26,8 @@
 > Task :capacitor-cordova-android-plugins:prepareDebugArtProfile
 > Task :capacitor-cordova-android-plugins:prepareLintJarForPublish
 > Task :capacitor-cordova-android-plugins:mergeDebugJavaResource
-> Task :capacitor-local-notifications:checkDebugAarMetadata
 > Task :capacitor-cordova-android-plugins:syncDebugLibJars
+> Task :capacitor-local-notifications:checkDebugAarMetadata
 > Task :capacitor-cordova-android-plugins:bundleDebugAar
 > Task :capacitor-cordova-android-plugins:assembleDebug
 > Task :capacitor-local-notifications:stripDebugDebugSymbols NO-SOURCE
@@ -64,13 +64,13 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 1m 54s
+BUILD SUCCESSFUL in 1m 21s
 185 actionable tasks: 185 executed
 
 ### Файл
--rw-r--r-- 1 runner runner 4618447 Nov 23 14:36 android/app/build/outputs/apk/debug/app-debug.apk
-sha256: 5f9989743c730a484b45dc205f81f00d93d8f43eefa7312cbb63f9130ceecc58
-байт:   4618447
+-rw-r--r-- 1 runner runner 4621543 Nov 24 12:50 android/app/build/outputs/apk/debug/app-debug.apk
+sha256: 91b2c7417129e3edab1204779845ad86ddfceed7b2a7b12a80baf9e2dc0928f9
+байт:   4621543
 
 ### Целостность архива
     testing: org/apache/cordova/allowlist/index.html   OK
@@ -84,7 +84,7 @@ V2 Signer: certificate SHA-1 digest: 77337d2470865a3a250e0a99a6135fe5085dfd8b
 V2 Signer: certificate MD5 digest: 9153d739d06683a903317dc8545c8109
 
 ### badging (пакет, версии, разрешения)
-package: name='com.asutp.timer' versionCode='66' versionName='1.0.66' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
+package: name='com.asutp.timer' versionCode='66' versionName='1.0.73' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
 sdkVersion:'24'
 targetSdkVersion:'36'
 uses-permission: name='android.permission.INTERNET'
@@ -126,19 +126,19 @@ application-label-fa:'ASUTP Timer'
 application-label-fi:'ASUTP Timer'
 
 ### Веб-ресурсы и звуки внутри APK
-    17250  1981-01-01 01:01   assets/public/index.html
-    18302  1981-01-01 01:01   assets/public/js/alerts.js
-     2131  1981-01-01 01:01   assets/public/js/config.js
+    17988  1981-01-01 01:01   assets/public/index.html
+    18959  1981-01-01 01:01   assets/public/js/alerts.js
+     2758  1981-01-01 01:01   assets/public/js/config.js
      4949  1981-01-01 01:01   assets/public/js/locks.js
     17964  1981-01-01 01:01   assets/public/js/native.js
      4671  1981-01-01 01:01   assets/public/js/scheduler.js
-    14135  1981-01-01 01:01   assets/public/js/settings.js
+    14878  1981-01-01 01:01   assets/public/js/settings.js
     11766  1981-01-01 01:01   assets/public/js/shift.js
      5027  1981-01-01 01:01   assets/public/js/state.js
     10542  1981-01-01 01:01   assets/public/js/swipe.js
      7558  1981-01-01 01:01   assets/public/js/templates.js
      1015  1981-01-01 01:01   assets/public/js/toast.js
-     5525  1981-01-01 01:01   assets/public/js/ui.js
+     8649  1981-01-01 01:01   assets/public/js/ui.js
      2156  1981-01-01 01:01   assets/public/js/utils.js
      8741  1981-01-01 01:01   assets/public/vendor/capacitor.js
      1976  1981-01-01 01:01   assets/public/vendor/foreground-service.js
@@ -149,9 +149,9 @@ application-label-fi:'ASUTP Timer'
 
 ### Где лежит debug.keystore (нужно для кэша ключей)
 total 12
-drwxr-xr-x  2 runner runner 4096 Nov 23 14:35 .
-drwxr-x--- 16 runner runner 4096 Nov 23 14:35 ..
--rw-r--r--  1 runner runner  127 Nov 23 14:35 analytics.settings
+drwxr-xr-x  2 runner runner 4096 Nov 24 12:49 .
+drwxr-x--- 16 runner runner 4096 Nov 24 12:49 ..
+-rw-r--r--  1 runner runner  127 Nov 24 12:49 analytics.settings
 
 
 ### Ошибки сборки gradle (если есть)
@@ -162,7 +162,7 @@ drwxr-x--- 16 runner runner 4096 Nov 23 14:35 ..
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.asutp.timer"
     android:versionCode="66"
-    android:versionName="1.0.66" >
+    android:versionName="1.0.73" >
 
     <uses-sdk
         android:minSdkVersion="24"
