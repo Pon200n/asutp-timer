@@ -734,6 +734,75 @@ details[open] > .details-body { grid-template-rows: 1fr; }
 .sched-row.break-row.done { color: #524d26; }
 .sched-dur { color: var(--muted); font-size: 12px; margin-right: 6px; }
 
+/* ===== РАСПИСАНИЕ: КАРТОЧКИ БЛОКОВ (ТЗ п.2.3) ===== */
+.sched-card {
+  margin: 0 0 12px 0;
+  border: 1px solid #1e293b;
+  border-left: 3px solid var(--card-accent, rgba(0, 240, 255, .45));
+  background: #09090f;
+  overflow: hidden;
+}
+.sched-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  background: var(--card-bg, rgba(0, 240, 255, .05));
+  border-bottom: 1px solid #1e293b;
+}
+.sched-card-num {
+  flex: 0 0 auto;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border: 1px solid var(--card-accent, rgba(0, 240, 255, .45));
+  color: var(--card-accent, rgba(0, 240, 255, .45));
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sched-card-info { min-width: 0; }
+.sched-card-name {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sched-card-meta {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Блоки отделены приглушённым цветом — не кричит, но различим */
+.sched-card.tint-0 { --card-accent: rgba(0, 240, 255, .50);  --card-bg: rgba(0, 240, 255, .06); }
+.sched-card.tint-1 { --card-accent: rgba(252, 238, 9, .45); --card-bg: rgba(252, 238, 9, .055); }
+.sched-card.tint-2 { --card-accent: rgba(5, 255, 161, .42); --card-bg: rgba(5, 255, 161, .05); }
+.sched-card.tint-3 { --card-accent: rgba(255, 0, 60, .42);  --card-bg: rgba(255, 0, 60, .05); }
+.sched-card-rows .sched-row:last-child { border-bottom: none; }
+/* Зебра внутри карточки — только для активных и будущих строк.
+   Отработанные остаются ровными и тусклыми (правило .done ниже перебивает
+   зебру по специфичности). */
+.sched-card-rows .sched-row:nth-child(even) { background: #161628; }
+.sched-card-rows .sched-row.done { background: #08080c; }
+/* Перерыв — без шапки, поэтому отступы вокруг него вдвое меньше */
+.sched-card.sched-break {
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+.sched-card.sched-before-break {
+  margin-bottom: 6px;
+}
+
 /* ===== ТРЕВОГА ===== */
 #alarmOverlay {
   display: none;
