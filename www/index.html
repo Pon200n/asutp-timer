@@ -154,6 +154,20 @@
         </div>
       </div>
       <div class="setting-row">
+        <label for="setAlarmNotifMode">Уведомление тревоги</label>
+        <select id="setAlarmNotifMode">
+          <option value="persistent">Постоянное (не смахивается)</option>
+          <option value="dismissible">Обычное (можно смахнуть)</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label for="setAlarmSwipeAction">Смахивание уведомления</label>
+        <select id="setAlarmSwipeAction">
+          <option value="dismiss">Только убрать уведомление</option>
+          <option value="ack">Погасить тревогу</option>
+        </select>
+      </div>
+      <div class="setting-row">
         <label for="setVoiceMode">Режим оповещений</label>
         <select id="setVoiceMode">
           <option value="full">Голос + Сигнал + Вибрация</option>

@@ -189,7 +189,12 @@ App.Alerts = {
         kind: kind,
         mode: mode,
         eventIdx: idx,
-        chainIdx: ev.chainIdx
+        chainIdx: ev.chainIdx,
+        // Как показывать уведомление тревоги: постоянное (не смахивается) или
+        // обычное (нужно, чтобы браслет/часы его получали). И что делает
+        // смахивание: только убрать уведомление или погасить тревогу.
+        persistent: App.State.settings.alarmNotifMode !== 'dismissible',
+        swipeAck: App.State.settings.alarmSwipeAction === 'ack'
       });
     };
 
@@ -262,7 +267,9 @@ App.Alerts = {
         kind: 'op_start',
         mode: 'op',
         eventIdx: -1,
-        chainIdx: firstOp.chainIdx
+        chainIdx: firstOp.chainIdx,
+        persistent: App.State.settings.alarmNotifMode !== 'dismissible',
+        swipeAck: App.State.settings.alarmSwipeAction === 'ack'
       });
     }
 

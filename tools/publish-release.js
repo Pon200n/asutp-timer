@@ -132,26 +132,37 @@ async function main() {
   // адрес берётся из поля upload_url релиза (шаблон …/assets{?name,label}).
   // С api.github.com приходит 404, и ассет в релизе так и не появляется.
   const data = fs.readFileSync(apkPath);
-  // Подпись ассета — чтобы в списке файлов было видно, какая сборка внутри.
-  const label = encodeURIComponent(
-    (BUILD_NUMBER ? 'Сборка #' + BUILD_NUMBER : 'latest') +
-    (SHORT_SHA && SHORT_SHA !== 'local' ? ' · ' + SHORT_SHA : '')
-  );
-  const uploadUrl = (rel.upload_url
+  const assetBase = (rel.upload_url
     ? rel.upload_url.replace(/\{.*$/, '')
-    : 'https://uploads.github.com/repos/' + REPO + '/releases/' + rel.id + '/assets') +
-    '?name=' + encodeURIComponent(ASSET) + '&label=' + label;
+    : 'https://uploads.github.com/repos/' + REPO + '/releases/' + rel.id + '/assets');
 
-  const up = await fetch(uploadUrl, {
-    method: 'POST',
-    headers: Object.assign({}, headers, { 'Content-Type': 'application/octet-stream' }),
-    body: data
-  });
-  const res = await up.json();
-  if (res.browser_download_url) {
-    say('APK опубликован: ' + res.browser_download_url);
-  } else {
-    fail('ошибка загрузки ассета: ' + JSON.stringify(res).slice(0, 400));
+  const uploadAsset = async (name, label) => {
+    const url = assetBase + '?name=' + encodeURIComponent(name) +
+                '&label=' + encodeURIComponent(label);
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: Object.assign({}, headers, { 'Content-Type': 'application/octet-stream' }),
+      body: data
+    });
+    const j = await r.json();
+    if (j.browser_download_url) {
+      say('опубликован ' + name + ' → ' + j.browser_download_url);
+      return true;
+    }
+    say('ошибка загрузки ' + name + ': ' + JSON.stringify(j).slice(0, 300));
+    return false;
+  };
+
+  // Скользящий файл — текущая сборка (ссылка не меняется).
+  await uploadAsset(ASSET,
+    (BUILD_NUMBER ? 'Сборка #' + BUILD_NUMBER : 'latest') +
+    (SHORT_SHA && SHORT_SHA !== 'local' ? ' · ' + SHORT_SHA : ''));
+
+  // Копия с номером сборки — остаётся в релизе навсегда: с неё можно
+  // откатиться прямо с телефона (страница релиза в браузере).
+  if (BUILD_NUMBER) {
+    await uploadAsset('asutp-timer-build-' + BUILD_NUMBER + '.apk',
+      'Сборка #' + BUILD_NUMBER + (SHORT_SHA ? ' · ' + SHORT_SHA : '') + ' — для отката');
   }
 
   saveLog();

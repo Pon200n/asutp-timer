@@ -166,10 +166,18 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
     private void showNotification(Context ctx, int id, String payload) {
         String title = "ВНИМАНИЕ";
         String text = "";
+        // Режим уведомления задаёт JS (настройки приложения):
+        //   persistent — постоянное уведомление, не смахивается (как было);
+        //   dismissible — обычное: смахивается, и его пересылают браслету/часам.
+        // Нет поля в payload → постоянное (безопасно для старых сборок).
+        boolean persistent = true;
+        boolean swipeAck = false;
         try {
             JSONObject o = new JSONObject(payload);
             title = o.optString("title", title);
             text = o.optString("text", text);
+            if (o.has("persistent")) persistent = o.optBoolean("persistent", true);
+            swipeAck = o.optBoolean("swipeAck", false);
         } catch (JSONException e) {
             Log.e(TAG, "битый payload: " + e.getMessage());
         }
@@ -207,7 +215,6 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setOngoing(true)
                 .setAutoCancel(false)
                 // setSilent(true) здесь НЕЛЬЗЯ: тихое уведомление MIUI считает
                 // непригодным для показа на экране блокировки — пропадает флаг
@@ -216,6 +223,20 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
                 .setContentIntent(contentPi)
                 .setFullScreenIntent(contentPi, true)
                 .addAction(R.drawable.ic_stat_ack, "ПРИНЯТО / ДАЛЕЕ", ackPi);
+
+        if (persistent) {
+            // Постоянное уведомление: не смахивается (кружок «–» в шторке),
+            // живёт до подтверждения.
+            b.setOngoing(true);
+        } else {
+            // Обычное уведомление: его можно смахнуть, и оно доходит до
+            // браслета/часов. Если смахивание должно гасить тревогу —
+            // вешаем тот же broadcast, что у кнопки «ПРИНЯТО / ДАЛЕЕ».
+            b.setOngoing(false);
+            if (swipeAck) {
+                b.setDeleteIntent(ackPi);
+            }
+        }
 
         NotificationManagerCompat.from(ctx).notify(NOTIFICATION_ID, b.build());
     }

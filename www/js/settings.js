@@ -40,6 +40,8 @@ App.Settings = {
     this.setVal('setVoiceMode',       s.voiceMode || 'full');
     this.setVal('setClickSound',      s.clickSoundMode || 'both');
     this.setVal('voiceStyle',         s.voiceStyle || 'edgerunners');
+    this.setVal('setAlarmNotifMode',  s.alarmNotifMode || 'persistent');
+    this.setVal('setAlarmSwipeAction', s.alarmSwipeAction || 'dismiss');
     this.renderEarlyAlert();
     this.renderRounding();
     this.renderBuildInfo();
@@ -285,6 +287,14 @@ App.Settings = {
     if (t.id === 'setRoundingDir') {
       App.State.setSetting('roundingMode', t.value);
       this.renderRounding();
+      this.replanAlerts();
+      return;
+    }
+    if (t.id === 'setAlarmNotifMode' || t.id === 'setAlarmSwipeAction') {
+      App.State.setSetting(t.id === 'setAlarmNotifMode' ? 'alarmNotifMode' : 'alarmSwipeAction', t.value);
+      // Перепланируем, чтобы режим применился и к уже поставленным тревогам:
+      // времена не меняются, поэтому будильники пересоздавать не придётся —
+      // нативка только обновит содержимое уведомления.
       this.replanAlerts();
       return;
     }

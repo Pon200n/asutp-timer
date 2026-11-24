@@ -20,6 +20,13 @@ App.DEFAULT_SETTINGS = {
   // Раньше настройка называлась earlyAlertMin и хранила минуты.
   earlyAlertSec: 0,
   roundingMode: 'off',            // 'off' | 'down' (в меньшую) | 'up' (в большую)
+  // Уведомление тревоги: 'persistent' — постоянное (не смахивается, как было),
+  // 'dismissible' — обычное (можно смахнуть; нужно браслету/часам).
+  alarmNotifMode: 'persistent',
+  // Что делает смахивание уведомления (в режиме dismissible):
+  // 'dismiss' — только убрать уведомление, тревога продолжает звонить;
+  // 'ack' — погасить тревогу (звук, вибрация, экран тревоги).
+  alarmSwipeAction: 'dismiss',
   voiceMode: 'full',              // 'full' (голос+сигнал+вибро) | 'signal' (только сигнал+вибро)
   voiceStyle: 'edgerunners',      // 'edgerunners' | 'simple'
   voiceRate: 1.03,
