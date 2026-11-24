@@ -1,11 +1,13 @@
 package com.asutp.timer;
 
 import android.app.Activity;
+import android.app.KeyguardManager;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.os.UserManager;
 import android.util.Log;
 import android.util.TypedValue;
@@ -87,9 +89,28 @@ public class AsutpAlarmActivity extends Activity {
         }
     }
 
+    /** Заблокирован ли экран (замок или погашен). */
+    private boolean isScreenLocked() {
+        try {
+            KeyguardManager km = (KeyguardManager) getSystemService(KeyguardManager.class);
+            if (km != null && km.isKeyguardLocked()) return true;
+        } catch (Throwable t) { }
+        try {
+            PowerManager pm = (PowerManager) getSystemService(PowerManager.class);
+            return pm != null && !pm.isInteractive();
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
     /** Открыть обычное приложение. false — открывать нельзя (direct boot). */
     private boolean forwardToApp() {
         if (forwarded) return true;
+        // Если экран заблокирован — показываем нативный экран тревоги, а не
+        // приложение. Проверять надо именно экран: после перезагрузки MIUI может
+        // считать пользователя «разблокированным» (сессия жива), пока экран
+        // заблокирован — и тогда тревога открывала приложение вместо себя.
+        if (isScreenLocked()) return false;
         if (!isUnlocked()) return false;
         forwarded = true;
         try {
