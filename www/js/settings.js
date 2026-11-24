@@ -206,7 +206,7 @@ App.Settings = {
       }
       return;
     }
-    if (t.id === 'btnClearTestNotif') {
+    if (t.id === 'btnClearTestNotif' || t.id === 'btnClearTestNotifAlways') {
       if (App.Native) App.Native.clearTestNotifications();
       if (App.Toast) App.Toast.show('Тестовые уведомления убраны');
       return;

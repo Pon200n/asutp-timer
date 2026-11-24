@@ -310,6 +310,9 @@ App.Alerts = {
   onNativeAlarm: function (data) {
     if (!data) return;
     const extra = data.extra || {};
+    // ВРЕМЕННО: какие флаги режима дошли до нативной части
+    console.log('[Alerts] тревога: persistent=' + (data.persistent === undefined ? 'нет' : data.persistent)
+      + ' swipeAck=' + (data.swipeAck === undefined ? 'нет' : data.swipeAck));
     const id = (extra.alertId !== undefined && extra.alertId !== null) ? extra.alertId : data.id;
     if (id === undefined || id === null) return;
     if (this.handled[id]) return;              // уже показали или уже подтвердили
