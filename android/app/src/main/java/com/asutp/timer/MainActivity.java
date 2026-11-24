@@ -14,6 +14,21 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(AsutpAlarmPlugin.class);
         super.onCreate(savedInstanceState);
 
+        // Ассеты лежат в самом APK, но WebView их кэширует по URL — после
+        // обновления приложения мог остаться старый JS (так пропала новая
+        // настройка уведомления тревоги). Для локальных файлов кэш не нужен:
+        // чистим его и запрещаем кэширование.
+        try {
+            com.getcapacitor.Bridge bridge = getBridge();
+            if (bridge != null && bridge.getWebView() != null) {
+                bridge.getWebView().clearCache(true);
+                bridge.getWebView().getSettings()
+                        .setCacheMode(android.webkit.WebSettings.LOAD_NO_CACHE);
+            }
+        } catch (Exception e) {
+            android.util.Log.w("AsutpMain", "кэш WebView: " + e.getMessage());
+        }
+
         // Приложение должно уметь выйти поверх экрана блокировки:
         // его открывает полноэкранное намерение из тревоги.
         // На MIUI дополнительно требуется разрешение
