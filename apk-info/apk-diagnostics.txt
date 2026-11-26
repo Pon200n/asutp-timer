@@ -1,8 +1,8 @@
 ### Сборка
-номер:    #83 (номер коммита в истории)
-прогон CI: 68
-коммит:   0f266b0c28270063854109d9ce160e104b158c3c
-собрано:  2026-11-26T12:07:18Z
+номер:    #84 (номер коммита в истории)
+прогон CI: 69
+коммит:   c6ca4bbc77b104a159a480c2106df4b9942b9c4d
+собрано:  2026-11-26T12:13:47Z
 релиз:    https://github.com/Pon200n/asutp-timer/releases/tag/latest
 
 ### Хвост лога сборки gradle
@@ -64,7 +64,7 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD FAILED in 1m 20s
+BUILD FAILED in 1m 17s
 104 actionable tasks: 104 executed
 
 ### Файл
