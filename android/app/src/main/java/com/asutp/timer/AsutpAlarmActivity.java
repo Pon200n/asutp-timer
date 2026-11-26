@@ -162,8 +162,8 @@ public class AsutpAlarmActivity extends Activity {
         }
         View veil = new View(this);
         GradientDrawable veilBg = new GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
                 new int[]{0x00000000, 0xCC08080C, 0xF208080C});
-        veilBg.setOrientation(GradientDrawable.Orientation.TOP_BOTTOM);
         veil.setBackground(veilBg);
         root.addView(veil, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -357,16 +357,18 @@ public class AsutpAlarmActivity extends Activity {
     }
 
     private GradientDrawable thumbBackground(int accent) {
-        GradientDrawable d = new GradientDrawable(new int[]{0xFF00F0FF, 0xFF05FFA1});
-        d.setOrientation(GradientDrawable.Orientation.TL_BR);
+        GradientDrawable d = new GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
+                new int[]{0xFF00F0FF, 0xFF05FFA1});
         d.setCornerRadius(dp(2));
         return d;
     }
 
     /** Тёмная подложка с диагональной штриховкой — как у .lock-swipe в вебе. */
     private GradientDrawable hatchBackground(int alpha) {
-        GradientDrawable d = new GradientDrawable(new int[]{0x00000000, alpha});
-        d.setOrientation(GradientDrawable.Orientation.TL_BR);
+        GradientDrawable d = new GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
+                new int[]{0x00000000, alpha});
         d.setStroke(dp(1), 0x5500F0FF);
         return d;
     }
