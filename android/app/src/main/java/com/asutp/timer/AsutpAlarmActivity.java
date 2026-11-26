@@ -61,9 +61,12 @@ public class AsutpAlarmActivity extends Activity {
 
     private boolean forwarded = false;
 
+    // Бейдж — чтобы перекрасить при подтверждении
+    private TextView badgeView;
+
     // Ползунок подтверждения
     private FrameLayout swipeBar;
-    private View swipeThumb;
+    private TextView swipeThumb;
     private View swipeFill;
     private boolean swiping = false;
     private float swipeStartX = 0f;
@@ -173,12 +176,22 @@ public class AsutpAlarmActivity extends Activity {
         root.addView(veil, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-        // Рамка и пульсирующее свечение — как alarmFlash в веб-версии
-        final FrameLayout frame = new FrameLayout(this);
-        frame.setBackground(hatchBackground(0x22ff003c));
+        // Рамка и пульсирующее свечение — как alarmFlash в веб-версии.
+        // Рамка — отдельным слоем ПОД содержимым, иначе мигает и сам текст.
+        final FrameView frame = new FrameView(accent);
+        frame.setClickable(false);
         root.addView(frame, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        pulse(frame, accent);
+        pulse(frame);
+
+        // Сканлайн — бегущая полоса (как body::after в веб-версии).
+        // Идёт под содержимым, чтобы не перечёркивать текст.
+        View line = new View(this);
+        line.setBackgroundColor(0x5500F0FF);
+        FrameLayout.LayoutParams llp = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(2));
+        root.addView(line, llp);
+        startScanline(line);
 
         // Содержимое — у нижнего края экрана: бейдж, название блока и ползунок
         LinearLayout content = new LinearLayout(this);
@@ -189,12 +202,14 @@ public class AsutpAlarmActivity extends Activity {
         FrameLayout.LayoutParams clp = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         clp.bottomMargin = dp(80);      // как в прототипе: отступ от низа экрана
-        frame.addView(content, clp);
+        root.addView(content, clp);
 
         // Бейдж
         TextView badge = new TextView(this);
+        badgeView = badge;
         badge.setText(title);
-        badge.setTextColor(Color.WHITE);
+        // На жёлтом (перерыв) текст чёрный — как .break-mode .alarm-badge в вебе
+        badge.setTextColor(isBreak() ? Color.BLACK : Color.WHITE);
         badge.setTextSize(13);
         badge.setTypeface(Typeface.DEFAULT_BOLD);
         badge.setLetterSpacing(0.22f);
@@ -211,6 +226,7 @@ public class AsutpAlarmActivity extends Activity {
         titleView.setText(text);
         titleView.setTextColor(C_TEXT);
         titleView.setTextSize(26);
+        titleView.setTypeface(Typeface.DEFAULT_BOLD);
         titleView.setGravity(Gravity.CENTER);
         titleView.setLineSpacing(0f, 1.15f);
         LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(
@@ -221,14 +237,6 @@ public class AsutpAlarmActivity extends Activity {
         // Ползунок подтверждения (вместо кнопки)
         buildSwipeBar(id, payload, accent);
         content.addView(swipeBar, (LinearLayout.LayoutParams) swipeBar.getLayoutParams());
-
-        // Сканлайн
-        View line = new View(this);
-        line.setBackgroundColor(0x5500F0FF);
-        FrameLayout.LayoutParams llp = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, dp(2));
-        root.addView(line, llp);
-        startScanline(line);
 
         return root;
     }
@@ -280,7 +288,7 @@ public class AsutpAlarmActivity extends Activity {
         swipeBar.addView(swipeFill, new FrameLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT));
 
         TextView hint = new TextView(this);
-        hint.setText("ПОТЯНИ  ▸  ПРИНЯТЬ");
+        hint.setText("ПОТЯНИ  »  ПРИНЯТЬ");
         hint.setTextColor(C_MUTED);
         hint.setTextSize(13);
         hint.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
@@ -289,11 +297,17 @@ public class AsutpAlarmActivity extends Activity {
         swipeBar.addView(hint, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-        swipeThumb = new View(this);
+        // Бегунок — циановый квадрат со стрелкой «» (как .swipe-thumb в приложении)
+        swipeThumb = new TextView(this);
+        swipeThumb.setText("»");
+        swipeThumb.setTextColor(Color.BLACK);
+        swipeThumb.setTextSize(20);
+        swipeThumb.setTypeface(Typeface.DEFAULT_BOLD);
+        swipeThumb.setGravity(Gravity.CENTER);
         swipeThumb.setBackground(thumbBackground(accent));
-        FrameLayout.LayoutParams thLp = new FrameLayout.LayoutParams(
-                dp(48), ViewGroup.LayoutParams.MATCH_PARENT);
+        FrameLayout.LayoutParams thLp = new FrameLayout.LayoutParams(dp(48), dp(48));
         thLp.leftMargin = dp(4);
+        thLp.topMargin = dp(8);
         swipeThumb.setLayoutParams(thLp);
         swipeBar.addView(swipeThumb);
 
@@ -370,13 +384,57 @@ public class AsutpAlarmActivity extends Activity {
         return d;
     }
 
-    /** Тёмная подложка с диагональной штриховкой — как у .lock-swipe в вебе. */
-    private GradientDrawable hatchBackground(int alpha) {
-        GradientDrawable d = new GradientDrawable(
-                GradientDrawable.Orientation.TL_BR,
-                new int[]{0x00000000, alpha});
-        d.setStroke(dp(1), 0x5500F0FF);
-        return d;
+    /**
+     * Рамка экрана тревоги: сплошная красная (или жёлтая для перерыва) обводка
+     * по краю экрана + мягкое внутреннее свечение — как .frame в прототипе.
+     * Рисуется вручную, потому что у View нет «inset-тени».
+     */
+    private class FrameView extends View {
+        private final Paint border = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint glow = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private int accent;
+        /** Прозрачность внутреннего свечения — пульсирует. */
+        private int glowAlpha = 0x18;
+        private boolean glowDim = false;
+
+        FrameView(int accent) {
+            super(AsutpAlarmActivity.this);
+            this.accent = accent;
+            border.setStyle(Paint.Style.STROKE);
+            border.setStrokeWidth(dp(4));
+            glow.setStyle(Paint.Style.STROKE);
+        }
+
+        /** Пульсация внутреннего свечения: ярче → тусклее → ярче. */
+        void pulseGlow() {
+            glowDim = !glowDim;
+            glowAlpha = glowDim ? 0x05 : 0x20;
+            invalidate();
+            postDelayed(new Runnable() {
+                @Override
+                public void run() { pulseGlow(); }
+            }, 1100);
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            int w = getWidth();
+            int h = getHeight();
+            if (w <= 0 || h <= 0) return;
+            // Обводка по краю экрана
+            border.setColor(accent);
+            float inset = dp(2);
+            canvas.drawRect(inset, inset, w - inset, h - inset, border);
+            // Внутреннее свечение — несколько вложенных прямоугольников
+            glow.setStrokeWidth(dp(10));
+            for (int i = 1; i <= 6; i++) {
+                int alpha = glowAlpha - i * 0x03;
+                if (alpha <= 0) break;
+                glow.setColor((alpha << 24) | (accent & 0x00FFFFFF));
+                float d = inset + i * dp(9);
+                canvas.drawRect(d, d, w - d, h - d, glow);
+            }
+        }
     }
 
     /**
@@ -415,21 +473,25 @@ public class AsutpAlarmActivity extends Activity {
     }
 
     /** Мягкое пульсирующее свечение по краям — аналог alarmFlash. */
-    private void pulse(final View v, final int accent) {
+    private void pulse(final View v) {
         v.setElevation(0);
         v.post(new Runnable() {
             @Override
             public void run() {
                 try {
+                    if (v instanceof FrameView) {
+                        // У рамки пульсирует только свечение, сама обводка — ровная
+                        ((FrameView) v).pulseGlow();
+                        return;
+                    }
                     Object o = v.getBackground();
                     if (!(o instanceof GradientDrawable)) return;
-                    ((GradientDrawable) o).setStroke(dp(1), accent);
                     v.animate().alpha(0.55f).setDuration(1100).withEndAction(new Runnable() {
                         @Override
                         public void run() {
                             v.animate().alpha(1f).setDuration(1100).withEndAction(new Runnable() {
                                 @Override
-                                public void run() { pulse(v, accent); }
+                                public void run() { pulse(v); }
                             }).start();
                         }
                     }).start();
@@ -539,10 +601,45 @@ public class AsutpAlarmActivity extends Activity {
         } catch (Exception e) {
             Log.e(TAG, "подтверждение: " + e.getMessage());
         }
+        showConfirmed();
         try {
-            finish();
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                finish();
+                            } catch (Exception e) {
+                                Log.e(TAG, "finish: " + e.getMessage());
+                            }
+                        }
+                    }, 900);
         } catch (Exception e) {
-            Log.e(TAG, "finish: " + e.getMessage());
+            Log.e(TAG, "закрытие: " + e.getMessage());
+            try {
+                finish();
+            } catch (Exception e2) {
+                Log.e(TAG, "finish: " + e2.getMessage());
+            }
+        }
+    }
+
+    /** Состояние «подтверждено»: в бейдже — «ПРИНЯТО» в циановом квадрате. */
+    private void showConfirmed() {
+        try {
+            if (badgeView != null) {
+                badgeView.setText("ПРИНЯТО");
+                badgeView.setBackground(solid(C_CYAN));
+            }
+            // Полоса свайпа — зелёная, бегунок в конце (как в прототипе)
+            if (swipeFill != null) swipeFill.setBackgroundColor(0x5905FFA1);
+            if (swipeThumb != null) {
+                swipeThumb.animate().cancel();
+                swipeThumb.setTranslationX(swipeMax());
+            }
+            setFillWidth(swipeBar == null ? 0 : swipeBar.getWidth());
+        } catch (Exception e) {
+            Log.e(TAG, "подтверждено: " + e.getMessage());
         }
     }
 
