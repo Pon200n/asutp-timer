@@ -8,11 +8,9 @@ import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Shader;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
@@ -265,6 +263,17 @@ public class AsutpAlarmActivity extends Activity {
         barLp.setMargins(dp(4), dp(18), dp(4), dp(6));
         swipeBar.setLayoutParams(barLp);
         swipeBar.setBackground(stripeBackground());
+        // Штриховка рисуется под размер полосы — после раскладки
+        swipeBar.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    swipeBar.setBackground(stripeBitmap(swipeBar.getWidth(), swipeBar.getHeight()));
+                } catch (Throwable t) {
+                    Log.w(TAG, "штриховка: " + t.getMessage());
+                }
+            }
+        });
 
         swipeFill = new View(this);
         swipeFill.setBackgroundColor(0x44FF003C);
@@ -378,23 +387,30 @@ public class AsutpAlarmActivity extends Activity {
         GradientDrawable base = new GradientDrawable();
         base.setColor(0xFF06060A);
         base.setStroke(dp(1), 0x6600F0FF);
+        return base;
+    }
+
+    /**
+     * Диагональная штриховка блока свайпа — рисуется прямо в битмап нужного
+     * размера (полосы шире и ярче, чем у .swipe-box в веб-версии).
+     */
+    private android.graphics.drawable.Drawable stripeBitmap(int w, int h) {
         try {
-            int size = 32;
-            Bitmap bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+            if (w <= 0 || h <= 0) return stripeBackground();
+            Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bmp);
+            canvas.drawColor(0xFF06060A);
             Paint paint = new Paint();
             paint.setColor(0x2E00F0FF);
             paint.setStrokeWidth(5f);
-            canvas.drawLine(-size, size, size, -size, paint);
-            canvas.drawLine(0, size * 2, size * 2, 0, paint);
-            BitmapDrawable tile = new BitmapDrawable(getResources(), bmp);
-            android.graphics.drawable.RepeatDrawable stripes =
-                    new android.graphics.drawable.RepeatDrawable(tile, null, -1, 0f, 0f);
-            return new android.graphics.drawable.LayerDrawable(
-                    new android.graphics.drawable.Drawable[]{base, stripes});
+            int step = 22;
+            for (int x = -h; x < w + h; x += step) {
+                canvas.drawLine(x, h, x + h, 0, paint);
+            }
+            return new android.graphics.drawable.BitmapDrawable(getResources(), bmp);
         } catch (Throwable t) {
             Log.w(TAG, "штриховка: " + t.getMessage());
-            return base;
+            return stripeBackground();
         }
     }
 
