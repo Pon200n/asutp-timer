@@ -120,6 +120,25 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
             Log.e(TAG, "не удалось показать уведомление: " + e.getMessage());
         }
 
+        // Запасной путь: окно тревоги запускаем сами, не полагаясь на
+        // полноэкранное намерение.
+        //
+        // Почему: полноэкранное намерение система выполняет ТОЛЬКО если канал
+        // уведомлений имеет важность HIGH. Если важность уведомлений для
+        // приложения понижена (в MIUI — «Важность уведомлений»), новый канал
+        // родится с LOW, и окно над замком не появится: будет только звук
+        // (он идёт отдельным путём USAGE_ALARM).
+        //
+        // Прямой запуск Activity работает независимо от важности. Ограничение
+        // Android 10+: из фона нельзя запускать Activity, но у приложения есть
+        // разрешение SYSTEM_ALERT_WINDOW («Отображение поверх других
+        // приложений») — с ним запуск тревоги разрешён.
+        try {
+            launchAlarmWindow(ctx, id, payload);
+        } catch (Exception e) {
+            Log.e(TAG, "не удалось открыть окно тревоги: " + e.getMessage());
+        }
+
         // ТЗ п.5.3: сначала однократно озвучивается текст события,
         // затем в бесконечном цикле идёт резкий зуммер.
         // Если бы одновременно — громкий зуммер заглушал бы голос.
@@ -249,8 +268,8 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
                 b.setLargeIcon(thumb);
                 b.setStyle(new NotificationCompat.BigPictureStyle()
                         .bigPicture(thumb)
-                        .bigContentTitle(title)
-                        .bigText(text));
+                        .setBigContentTitle(title)
+                        .setSummaryText(text));
             }
         } catch (Throwable t) {
             Log.w(TAG, "картинка в уведомлении: " + t.getMessage());
@@ -292,8 +311,68 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
             ch.setShowBadge(true);
             ch.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             nm.createNotificationChannel(ch);
+
+            // Только диагностика: важность канала не меняем молча.
+            //
+            // Канал не может быть важнее приложения: если пользователь понизил
+            // «Важность уведомлений» (в MIUI это настройка приложения), новый
+            // канал родится сразу с LOW, и полноэкранное намерение не
+            // сработает — окно тревоги не выйдет над замком (звук при этом
+            // играет, он идёт отдельным путём USAGE_ALARM).
+            //
+            // Окно тревоги в этом случае открывает запасной путь —
+            // прямой запуск Activity (см. launchAlarmWindow).
+            NotificationChannel made = nm.getNotificationChannel(CHANNEL_ID);
+            if (made != null && made.getImportance() < NotificationManager.IMPORTANCE_HIGH) {
+                Log.w(TAG, "важность канала " + CHANNEL_ID + " = " + made.getImportance()
+                        + " (ниже HIGH) — полноэкранное намерение не сработает,"
+                        + " окно откроет запасной путь");
+            }
         } catch (Exception e) {
             Log.e(TAG, "не удалось создать канал: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Фактическая важность канала тревоги — для диагностики из настроек.
+     *
+     * Если важность ниже HIGH — окно тревоги не поднимется поверх замка,
+     * и пользователю надо поднять важность уведомлений для приложения.
+     */
+    static int channelImportance(Context ctx) {
+        try {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                return NotificationManager.IMPORTANCE_HIGH;
+            }
+            NotificationManager nm =
+                    (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm == null) return NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel ch = nm.getNotificationChannel(CHANNEL_ID);
+            return ch == null ? NotificationManager.IMPORTANCE_HIGH : ch.getImportance();
+        } catch (Throwable t) {
+            return NotificationManager.IMPORTANCE_HIGH;
+        }
+    }
+
+    /**
+     * Открыть окно тревоги напрямую (без полноэкранного намерения).
+     *
+     * Работает при любой важности уведомлений. Если телефон разблокирован —
+     * окно само перенаправит в приложение (см. forwardToApp в AsutpAlarmActivity),
+     * так что лишнего окна пользователь не увидит.
+     */
+    private static void launchAlarmWindow(Context ctx, int id, String payload) {
+        try {
+            Intent i = new Intent(ctx, AsutpAlarmActivity.class);
+            i.setAction(Intent.ACTION_MAIN);
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                    | Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            i.putExtra(EXTRA_PAYLOAD, payload);
+            ctx.startActivity(i);
+            Log.i(TAG, "окно тревоги запущено напрямую, id=" + id);
+        } catch (Throwable t) {
+            Log.e(TAG, "прямой запуск окна тревоги не удался: " + t.getMessage());
         }
     }
 }

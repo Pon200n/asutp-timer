@@ -230,6 +230,21 @@ App.Native = {
     return this.alarm.deleteAlarmBackground({ id: id }).catch(function () { return null; });
   },
 
+  /**
+   * Состояние показа тревоги поверх блокировки.
+   * high=false — важность уведомлений понижена, окно не поднимется над замком.
+   */
+  alarmLockScreenState: function () {
+    if (!this.alarmAvailable) return Promise.resolve(null);
+    return this.alarm.alarmLockScreenState().catch(function () { return null; });
+  },
+
+  /** Открыть настройки уведомлений приложения (важность, звук, баннеры). */
+  openNotificationSettings: function () {
+    if (!this.alarmAvailable) return Promise.resolve(null);
+    return this.alarm.openNotificationSettings().catch(function () { return null; });
+  },
+
   checkExactAlarms: function () {
     if (!this.ln || !this.ln.checkExactNotificationSetting) return Promise.resolve(null);
     return this.ln.checkExactNotificationSetting().then(function (res) {

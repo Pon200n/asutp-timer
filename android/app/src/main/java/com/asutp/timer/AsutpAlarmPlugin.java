@@ -656,6 +656,57 @@ public class AsutpAlarmPlugin extends Plugin {
         }
     }
 
+    /**
+     * Состояние показа тревоги поверх блокировки.
+     *
+     * Полноэкранное намерение работает только если канал уведомлений тревоги
+     * имеет важность HIGH. Если MIUI (или пользователь) понизил важность
+     * уведомлений для приложения — новый канал родится с LOW, и окно тревоги
+     * не поднимется над замком: будет только звук.
+     */
+    @PluginMethod
+    public void alarmLockScreenState(PluginCall call) {
+        try {
+            Context ctx = getContext();
+            int importance = AsutpAlarmReceiver.channelImportance(ctx);
+            boolean high = importance >= 5;   // NotificationManager.IMPORTANCE_HIGH
+            JSObject out = new JSObject();
+            out.put("importance", importance);
+            out.put("high", high);
+            // Разрешение на полноэкранный запуск (Android 14+)
+            boolean allowed = true;
+            if (Build.VERSION.SDK_INT >= 34) {
+                try {
+                    allowed = ctx.getPackageManager().checkPermission(
+                            "android.permission.USE_FULL_SCREEN_INTENT",
+                            ctx.getPackageName()) == PackageManager.PERMISSION_GRANTED;
+                } catch (Exception e) {
+                    allowed = true;
+                }
+            }
+            out.put("allowed", allowed);
+            call.resolve(out);
+        } catch (Exception e) {
+            call.reject("Ошибка проверки: " + e.getMessage());
+        }
+    }
+
+    /** Открыть настройки уведомлений приложения (важность, звук, баннеры). */
+    @PluginMethod
+    public void openNotificationSettings(PluginCall call) {
+        try {
+            Context ctx = getContext();
+            Intent i = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+            i.putExtra(Settings.EXTRA_APP_PACKAGE, ctx.getPackageName());
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            ctx.startActivity(i);
+            call.resolve();
+        } catch (Exception e) {
+            Log.e(TAG, "openNotificationSettings: " + e.getMessage());
+            call.reject("Не удалось открыть настройки: " + e.getMessage());
+        }
+    }
+
     // ---------- ВНУТРЕННЕЕ ----------
 
     private PendingIntent alarmPendingIntent(int id, String payload) {
@@ -977,10 +1028,11 @@ public class AsutpAlarmPlugin extends Plugin {
             }
             final Context ctx = getContext();
             final Uri uri = result.getData().getData();
-            String name = "";
+            String rawName = "";
             try {
-                name = queryDisplayName(ctx, uri);
+                rawName = queryDisplayName(ctx, uri);
             } catch (Throwable ignored) { }
+            final String name = rawName;
             // Декодирование и запись — в отдельном потоке: картинка из галереи
             // бывает на 12 Мпикс, блокировать интерфейс нельзя.
             new Thread(new Runnable() {

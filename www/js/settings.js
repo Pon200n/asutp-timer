@@ -197,6 +197,10 @@ App.Settings = {
       this.checkOverlayPermission();
       return;
     }
+    if (t.id === 'btnNotifSettings') {
+      this.openNotificationSettings();
+      return;
+    }
     // Кнопки тестовых уведомлений (проверка доставки на браслет/часы)
     if (t.dataset && t.dataset.testNotif) {
       const v = parseInt(t.dataset.testNotif, 10);
@@ -349,10 +353,42 @@ App.Settings = {
     });
   },
 
+  /**
+   * Настройки уведомлений приложения — там важность. Если она понижена,
+   * окно тревоги не поднимется поверх замка (будет только звук).
+   */
+  openNotificationSettings: function () {
+    if (!App.Native || !App.Native.alarmAvailable) {
+      App.Toast.show('Доступно только в нативном приложении');
+      return;
+    }
+    App.Native.openNotificationSettings();
+  },
+
+  /**
+   * Проверка: покажет окно тревоги поверх замка или нет.
+   * Полноэкранное намерение работает только при важности уведомлений HIGH.
+   */
+  checkAlarmLockScreen: function () {
+    if (!App.Native || !App.Native.alarmAvailable) {
+      App.Toast.show('Доступно только в нативном приложении');
+      return;
+    }
+    App.Native.alarmLockScreenState().then(function (st) {
+      if (!st) return;
+      if (st.high && st.allowed) {
+        App.Toast.show('Тревога выйдет поверх блокировки ✓');
+      } else if (!st.allowed) {
+        App.Toast.show('Разрешите полноэкранные уведомления в настройках Android');
+      } else {
+        App.Toast.show('Важность уведомлений понижена — поднимите её в настройках');
+      }
+    });
+  },
+
   // MIUI требует «Отображение поверх других приложений», иначе тревога
   // не выводит приложение поверх экрана блокировки.
-  checkOverlayPermission: function () {
-    if (!App.Native || !App.Native.available) {
+  checkOverlayPermission: function () {    if (!App.Native || !App.Native.available) {
       App.Toast.show('Доступно только в нативном приложении');
       return;
     }
