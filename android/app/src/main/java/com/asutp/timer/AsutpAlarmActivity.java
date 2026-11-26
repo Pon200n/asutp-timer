@@ -8,7 +8,11 @@ import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BitmapShader;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Shader;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
@@ -178,11 +182,12 @@ public class AsutpAlarmActivity extends Activity {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         pulse(frame, accent);
 
-        // Содержимое
+        // Содержимое — у нижнего края экрана: бейдж, название блока и ползунок
         LinearLayout content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
-        content.setGravity(Gravity.CENTER);
-        content.setPadding(dp(26), dp(36), dp(26), dp(28));
+        content.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+        int screenH = getResources().getDisplayMetrics().heightPixels;
+        content.setPadding(dp(26), dp(36), dp(26), Math.max(dp(36), screenH / 10));
         FrameLayout.LayoutParams clp = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         frame.addView(content, clp);
@@ -213,19 +218,6 @@ public class AsutpAlarmActivity extends Activity {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         tlp.bottomMargin = dp(10);
         content.addView(titleView, tlp);
-
-        // Моноширинная подпись
-        TextView sub = new TextView(this);
-        sub.setText(isBreak() ? "РЕГЛАМЕНТНЫЙ ПЕРЕРЫВ" : "ОПОВЕЩЕНИЕ О СМЕНЕ");
-        sub.setTextColor(C_CYAN);
-        sub.setTextSize(13);
-        sub.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
-        sub.setLetterSpacing(0.2f);
-        sub.setGravity(Gravity.CENTER);
-        LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        slp.bottomMargin = dp(8);
-        content.addView(sub, slp);
 
         // Ползунок подтверждения (вместо кнопки)
         buildSwipeBar(id, payload, accent);
@@ -268,9 +260,10 @@ public class AsutpAlarmActivity extends Activity {
         swipeBar = new FrameLayout(this);
         LinearLayout.LayoutParams barLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, dp(64));
-        barLp.setMargins(dp(4), dp(14), dp(4), dp(6));
+        // Ползунок — сразу под названием блока
+        barLp.setMargins(dp(4), dp(18), dp(4), dp(6));
         swipeBar.setLayoutParams(barLp);
-        swipeBar.setBackground(hatchBackground(0x3300F0FF));
+        swipeBar.setBackground(stripeBackground());
 
         swipeFill = new View(this);
         swipeFill.setBackgroundColor(0x44FF003C);
@@ -373,6 +366,32 @@ public class AsutpAlarmActivity extends Activity {
                 GradientDrawable.Orientation.TL_BR,
                 new int[]{0x00000000, alpha});
         d.setStroke(dp(1), 0x5500F0FF);
+        return d;
+    }
+
+    /**
+     * Подложка блока свайпа: диагональная штриховка по всей площади —
+     * как .swipe-box в веб-версии (ярче и шире, чем раньше).
+     */
+    private android.graphics.drawable.Drawable stripeBackground() {
+        GradientDrawable d = new GradientDrawable();
+        d.setColor(0xFF06060A);
+        d.setStroke(dp(1), 0x6600F0FF);
+        try {
+            int size = 32;
+            Bitmap bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bmp);
+            Paint paint = new Paint();
+            paint.setColor(0x2E00F0FF);
+            paint.setStrokeWidth(5f);
+            canvas.drawLine(-size, size, size, -size, paint);
+            canvas.drawLine(0, size * 2, size * 2, 0, paint);
+            BitmapShader shader =
+                    new BitmapShader(bmp, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
+            d.setShader(shader);
+        } catch (Throwable t) {
+            Log.w(TAG, "штриховка: " + t.getMessage());
+        }
         return d;
     }
 
