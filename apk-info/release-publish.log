@@ -1,1 +1,6 @@
-ОШИБКА: нет APK: android/app/build/outputs/apk/debug/app-debug.apk
+APK: android/app/build/outputs/apk/debug/app-debug.apk (4630755 Б)
+релиз id=453925728 tag=latest ассетов=12
+релиз назван: Build Android APK #89
+прежний ассет удалён: 204
+опубликован asutp-timer-debug.apk → https://github.com/Pon200n/asutp-timer/releases/download/latest/asutp-timer-debug.apk
+опубликован asutp-timer-build-89.apk → https://github.com/Pon200n/asutp-timer/releases/download/latest/asutp-timer-build-89.apk
