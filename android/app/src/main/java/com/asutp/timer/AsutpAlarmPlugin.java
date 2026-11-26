@@ -769,6 +769,30 @@ public class AsutpAlarmPlugin extends Plugin {
         }
     }
 
+    /**
+     * Открыть нативный экран тревоги вручную — чтобы править его вид,
+     * не дожидаясь настоящей тревоги.
+     */
+    @PluginMethod
+    public void showTestAlarmWindow(PluginCall call) {
+        try {
+            Context ctx = getContext();
+            String payload = "{\"id\":9001,\"title\":\"ВНИМАНИЕ // ОПЕРАЦИЯ\","
+                    + "\"text\":\"ЩУЭ АСУТП СААТ-4: Операция 4\","
+                    + "\"kind\":\"op_finish\",\"mode\":\"op\"}";
+            Intent i = new Intent(ctx, AsutpAlarmActivity.class);
+            i.setAction(Intent.ACTION_MAIN);
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                    | Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            i.putExtra(AsutpAlarmReceiver.EXTRA_PAYLOAD, payload);
+            ctx.startActivity(i);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("Ошибка открытия окна тревоги: " + e.getMessage());
+        }
+    }
+
     /** Убрать все тестовые уведомления. */
     @PluginMethod
     public void clearTestNotifications(PluginCall call) {
