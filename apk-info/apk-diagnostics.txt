@@ -1,8 +1,8 @@
 ### Сборка
-номер:    #89 (номер коммита в истории)
-прогон CI: 74
-коммит:   3a47235cd789f7f2ec88725a5a1dbedc2c0a9470
-собрано:  2026-11-26T13:17:45Z
+номер:    #90 (номер коммита в истории)
+прогон CI: 75
+коммит:   2098b37502863ba3b3efbb9be7528609f02a0bf3
+собрано:  2026-11-26T13:59:53Z
 релиз:    https://github.com/Pon200n/asutp-timer/releases/tag/latest
 
 ### Хвост лога сборки gradle
@@ -11,14 +11,14 @@
 > Task :capacitor-community-text-to-speech:prepareLintJarForPublish
 > Task :capacitor-community-text-to-speech:mergeDebugJavaResource
 > Task :capacitor-cordova-android-plugins:checkDebugAarMetadata
-> Task :app:packageDebug
-> Task :app:createDebugApkListingFileRedirect
-> Task :app:assembleDebug
 > Task :capacitor-community-text-to-speech:syncDebugLibJars
 > Task :capacitor-community-text-to-speech:bundleDebugAar
 > Task :capacitor-community-text-to-speech:assembleDebug
 > Task :capacitor-cordova-android-plugins:stripDebugDebugSymbols NO-SOURCE
 > Task :capacitor-cordova-android-plugins:copyDebugJniLibsProjectAndLocalJars
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect
+> Task :app:assembleDebug
 > Task :capacitor-cordova-android-plugins:extractDebugAnnotations
 > Task :capacitor-cordova-android-plugins:extractDeepLinksForAarDebug
 > Task :capacitor-cordova-android-plugins:mergeDebugGeneratedProguardFiles
@@ -39,12 +39,12 @@
 > Task :capacitor-local-notifications:prepareDebugArtProfile
 > Task :capacitor-local-notifications:prepareLintJarForPublish
 > Task :capawesome-team-capacitor-android-foreground-service:checkDebugAarMetadata
-> Task :capawesome-team-capacitor-android-foreground-service:stripDebugDebugSymbols NO-SOURCE
 > Task :capacitor-local-notifications:mergeDebugJavaResource
-> Task :capawesome-team-capacitor-android-foreground-service:copyDebugJniLibsProjectAndLocalJars
+> Task :capawesome-team-capacitor-android-foreground-service:stripDebugDebugSymbols NO-SOURCE
 > Task :capacitor-local-notifications:syncDebugLibJars
 > Task :capacitor-local-notifications:bundleDebugAar
 > Task :capacitor-local-notifications:assembleDebug
+> Task :capawesome-team-capacitor-android-foreground-service:copyDebugJniLibsProjectAndLocalJars
 > Task :capawesome-team-capacitor-android-foreground-service:extractDebugAnnotations
 > Task :capawesome-team-capacitor-android-foreground-service:extractDeepLinksForAarDebug
 > Task :capawesome-team-capacitor-android-foreground-service:mergeDebugGeneratedProguardFiles
@@ -64,13 +64,13 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 1m 38s
+BUILD SUCCESSFUL in 1m 59s
 185 actionable tasks: 185 executed
 
 ### Файл
--rw-r--r-- 1 runner runner 4630755 Nov 26 13:19 android/app/build/outputs/apk/debug/app-debug.apk
-sha256: 271fc10c125dbfa7a7d9e86d999a0ad623e6fa4e4f78093e71da471462c59310
-байт:   4630755
+-rw-r--r-- 1 runner runner 4631923 Nov 26 14:01 android/app/build/outputs/apk/debug/app-debug.apk
+sha256: f2f7d87c3bf87962017d2641c99618bb4f9e0fb4bf9fd798855aada7e5763dda
+байт:   4631923
 
 ### Целостность архива
     testing: org/apache/cordova/allowlist/index.html   OK
@@ -84,7 +84,7 @@ V2 Signer: certificate SHA-1 digest: 77337d2470865a3a250e0a99a6135fe5085dfd8b
 V2 Signer: certificate MD5 digest: 9153d739d06683a903317dc8545c8109
 
 ### badging (пакет, версии, разрешения)
-package: name='com.asutp.timer' versionCode='66' versionName='1.0.89' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
+package: name='com.asutp.timer' versionCode='66' versionName='1.0.90' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
 sdkVersion:'24'
 targetSdkVersion:'36'
 uses-permission: name='android.permission.INTERNET'
@@ -149,9 +149,9 @@ application-label-fi:'ASUTP Timer'
 
 ### Где лежит debug.keystore (нужно для кэша ключей)
 total 12
-drwxr-xr-x  2 runner runner 4096 Nov 26 13:18 .
-drwxr-x--- 16 runner runner 4096 Nov 26 13:18 ..
--rw-r--r--  1 runner runner  127 Nov 26 13:18 analytics.settings
+drwxr-xr-x  2 runner runner 4096 Nov 26 14:00 .
+drwxr-x--- 16 runner runner 4096 Nov 26 14:01 ..
+-rw-r--r--  1 runner runner  127 Nov 26 14:00 analytics.settings
 
 
 ### Ошибки сборки gradle (если есть)
@@ -162,7 +162,7 @@ drwxr-x--- 16 runner runner 4096 Nov 26 13:18 ..
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.asutp.timer"
     android:versionCode="66"
-    android:versionName="1.0.89" >
+    android:versionName="1.0.90" >
 
     <uses-sdk
         android:minSdkVersion="24"
