@@ -218,6 +218,34 @@
       <button class="btn-small btn-red" id="btnClearTestNotifAlways" style="width:100%;margin-top:8px;">
         Убрать тестовые оповещения (5 шт.)
       </button>
+
+      <!-- Фон экрана тревоги. Картинки хранятся только на телефоне:
+           в репозиторий и в сборку они не попадают (авторские права). -->
+      <details class="adv-details" id="bgDetails">
+        <summary>ФОН ЭКРАНА ТРЕВОГИ</summary>
+        <div class="details-body">
+          <div class="details-inner">
+            <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:10px;">
+              Картинка сохраняется только на этом телефоне — в сборку и в
+              репозиторий она не попадает. Фон показывается и на экране тревоги,
+              и в уведомлении в шторке.
+            </div>
+            <div class="row" style="flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+              <button class="btn-small" id="btnPickBg">Выбрать файл с телефона</button>
+              <button class="btn-small btn-red" id="btnClearBg">Убрать фон</button>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">
+              Если картинки на телефоне нет — вставьте ссылку на неё:
+            </div>
+            <div class="row" style="gap:6px;margin-bottom:10px;">
+              <input type="url" id="bgUrlInput" placeholder="https://… картинка"
+                     style="flex:1;min-width:140px;font-size:12px;" />
+              <button class="btn-small" id="btnDlBg">Скачать</button>
+            </div>
+            <div id="bgList"></div>
+          </div>
+        </div>
+      </details>
     </div>
 
     <div class="card" id="breaksCard">

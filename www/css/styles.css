@@ -336,6 +336,44 @@ details[open] > .details-body { grid-template-rows: 1fr; }
 .adv-details[open] summary { color: var(--cyan); }
 .adv-details .details-body { padding: 0 14px 12px; }
 
+/* ===== СПИСОК ФОНОВ ЭКРАНА ТРЕВОГИ ===== */
+.bg-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px;
+  margin-bottom: 5px;
+  border: 1px solid #26304a;
+  border-radius: 3px;
+  background: #0b0b12;
+}
+.bg-item.active {
+  border-color: var(--cyan);
+  background: rgba(0, 240, 255, .07);
+}
+.bg-item-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bg-item-btns {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.bg-item-mark {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: var(--cyan);
+}
+
 /* ===== СЕЙЧАС ===== */
 .now-details summary {
   position: relative;

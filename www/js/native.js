@@ -90,6 +90,13 @@ App.Native = {
       if (App.Settings && App.Settings.renderBuildInfo) App.Settings.renderBuildInfo();
     });
 
+    // Список фонов экрана тревоги — тоже только после готовности плагина.
+    step('alarmBackgrounds', function () {
+      if (App.Settings && App.Settings.renderAlarmBackgrounds) {
+        App.Settings.renderAlarmBackgrounds();
+      }
+    });
+
     step('foregroundService', function () {
       // Плагины из www/vendor уже зарегистрированы их скриптами — второй раз
       // registerPlugin ругается в консоль. Берём готовый прокси.
@@ -179,6 +186,48 @@ App.Native = {
   showTestAlarmWindow: function () {
     if (!this.alarmAvailable) return Promise.resolve(null);
     return this.alarm.showTestAlarmWindow().catch(function () { return null; });
+  },
+
+  // ---------- ФОН ЭКРАНА ТРЕВОГИ ----------
+
+  /**
+   * Выбрать картинку фона из памяти телефона (галерея, «Загрузки»).
+   * Картинка копируется внутрь приложения — в репозиторий и в сборку
+   * она не попадает.
+   */
+  pickAlarmBackground: function () {
+    if (!this.alarmAvailable) return Promise.resolve(null);
+    return this.alarm.pickAlarmBackground()
+      .then(function (res) { return res || { ok: false }; })
+      .catch(function () { return { ok: false }; });
+  },
+
+  /** Скачать картинку фона по ссылке (если на телефоне её нет). */
+  addAlarmBackgroundUrl: function (url, name) {
+    if (!this.alarmAvailable) return Promise.resolve(null);
+    return this.alarm.addAlarmBackgroundUrl({ url: url, name: name || '' })
+      .then(function (res) { return res || { ok: false }; })
+      .catch(function () { return { ok: false }; });
+  },
+
+  /** Список сохранённых фонов: [{id, name, active}]. */
+  listAlarmBackgrounds: function () {
+    if (!this.alarmAvailable) return Promise.resolve([]);
+    return this.alarm.listAlarmBackgrounds()
+      .then(function (res) { return (res && res.items) || []; })
+      .catch(function () { return []; });
+  },
+
+  /** Сделать фон активным. */
+  setAlarmBackground: function (id) {
+    if (!this.alarmAvailable) return Promise.resolve(null);
+    return this.alarm.setAlarmBackground({ id: id }).catch(function () { return null; });
+  },
+
+  /** Удалить фон из списка. */
+  deleteAlarmBackground: function (id) {
+    if (!this.alarmAvailable) return Promise.resolve(null);
+    return this.alarm.deleteAlarmBackground({ id: id }).catch(function () { return null; });
   },
 
   checkExactAlarms: function () {

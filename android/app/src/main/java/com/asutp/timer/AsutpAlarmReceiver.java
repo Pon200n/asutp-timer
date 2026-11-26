@@ -9,6 +9,7 @@ import android.media.AudioAttributes;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
@@ -238,6 +239,21 @@ public class AsutpAlarmReceiver extends BroadcastReceiver {
             if (swipeAck) {
                 b.setDeleteIntent(ackPi);
             }
+        }
+
+        // Большая картинка в уведомлении (шторка) — та же, что на экране
+        // тревоги. Её может не быть: тогда уведомление обычное, с текстом.
+        try {
+            Bitmap thumb = AsutpAlarmPlugin.activeBgThumbnail(ctx);
+            if (thumb != null) {
+                b.setLargeIcon(thumb);
+                b.setStyle(new NotificationCompat.BigPictureStyle()
+                        .bigPicture(thumb)
+                        .bigContentTitle(title)
+                        .bigText(text));
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "картинка в уведомлении: " + t.getMessage());
         }
 
         NotificationManagerCompat.from(ctx).notify(NOTIFICATION_ID, b.build());

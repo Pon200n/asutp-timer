@@ -31,6 +31,8 @@ import android.widget.TextView;
 
 import org.json.JSONObject;
 
+import java.io.File;
+
 /**
  * Экран тревоги — нативный, без WebView.
  *
@@ -243,10 +245,33 @@ public class AsutpAlarmActivity extends Activity {
 
     // ---------- ФОН-КАРТИНКА (необязательная) ----------
 
+    /**
+     * Фон экрана тревоги.
+     *
+     * Источники по очереди:
+     * 1. картинка, выбранная пользователем (в device-protected хранилище —
+     *    доступна и до разблокировки телефона);
+     * 2. картинка, вложенная в сборку (assets/) — если её положили при сборке;
+     * 3. ничего → тёмный фон с неоновой рамкой.
+     *
+     * Любая ошибка (файла нет / битый / не хватает памяти) не ломает окно:
+     * оно в любом случае работоспособно.
+     */
     private View buildBackground() {
         ImageView iv = new ImageView(this);
         iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
         try {
+            // 1. Выбранный пользователем фон
+            Bitmap chosen = loadChosenBackground();
+            if (chosen != null) {
+                iv.setImageBitmap(chosen);
+                return iv;
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "выбранный фон не загружен: " + t.getMessage());
+        }
+        try {
+            // 2. Картинка внутри сборки
             AssetManager am = getAssets();
             Bitmap bmp = BitmapFactory.decodeStream(am.open(BG_ASSET));
             if (bmp != null) {
@@ -260,6 +285,53 @@ public class AsutpAlarmActivity extends Activity {
         // на тёмном фоне.
         return null;
     }
+
+    /**
+     * Картинка, выбранная пользователем (device-protected хранилище).
+     *
+     * Декодируется с масштабированием — картинка ужата до ~1080 px по длинной
+     * стороне, а на экране она всё равно показывается во весь экран: грузить
+     * 8 МБ пикселей ради фона смысла нет. Результат кэшируется — при повторном
+     * открытии окна (свайп недотянул, телефон разблокировали) картинка не
+     * перечитывается заново.
+     */
+    private Bitmap loadChosenBackground() {
+        String id = AsutpAlarmPlugin.activeAlarmBgId(this);
+        if (id == null || id.isEmpty()) return null;
+        // Кэш: картинка та же, пока её не сменили
+        if (bgCache != null && !bgCache.isRecycled() && id.equals(bgCacheId)) return bgCache;
+        File f = AsutpAlarmPlugin.bgFile(this, id);
+        if (f == null || !f.exists()) return null;
+        try {
+            BitmapFactory.Options probe = new BitmapFactory.Options();
+            probe.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(f.getAbsolutePath(), probe);
+            int sample = 1;
+            int longSide = Math.max(probe.outWidth, probe.outHeight);
+            int screenLong = Math.max(getResources().getDisplayMetrics().widthPixels,
+                    getResources().getDisplayMetrics().heightPixels);
+            while (longSide / sample > screenLong) sample *= 2;
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inSampleSize = sample;
+            opts.inPreferredConfig = Bitmap.Config.RGB_565;
+            Bitmap bmp = BitmapFactory.decodeFile(f.getAbsolutePath(), opts);
+            if (bmp == null) {
+                Log.w(TAG, "фон не читается: " + f.getAbsolutePath());
+                return null;
+            }
+            if (bgCache != null && !bgCache.isRecycled()) bgCache.recycle();
+            bgCache = bmp;
+            bgCacheId = id;
+            return bmp;
+        } catch (Throwable t) {
+            Log.w(TAG, "фон тревоги: " + t.getMessage());
+            return null;
+        }
+    }
+
+    /** Кэш фона окна тревоги — картинка одна и та же, пока её не сменили. */
+    private static Bitmap bgCache = null;
+    private static String bgCacheId = null;
 
     // ---------- ПОЛЗУНОК ПОДТВЕРЖДЕНИЯ ----------
 

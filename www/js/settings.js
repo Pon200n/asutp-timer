@@ -46,6 +46,7 @@ App.Settings = {
     this.renderRounding();
     this.renderBuildInfo();
     this.renderBreaks();
+    this.renderAlarmBackgrounds();
   },
 
   // ---------- СВЕДЕНИЯ О СБОРКЕ ----------
@@ -210,11 +211,142 @@ App.Settings = {
       if (App.Native) App.Native.showTestAlarmWindow();
       return;
     }
+    if (t.id === 'btnPickBg') {
+      this.pickAlarmBackground();
+      return;
+    }
+    if (t.id === 'btnDlBg') {
+      this.downloadAlarmBackground();
+      return;
+    }
+    if (t.id === 'btnClearBg') {
+      this.clearAlarmBackground();
+      return;
+    }
+    if (t.dataset && t.dataset.bgUse) {
+      this.setAlarmBackground(t.dataset.bgUse);
+      return;
+    }
+    if (t.dataset && t.dataset.bgDel) {
+      this.deleteAlarmBackground(t.dataset.bgDel);
+      return;
+    }
     if (t.id === 'btnClearTestNotif' || t.id === 'btnClearTestNotifAlways') {
       if (App.Native) App.Native.clearTestNotifications();
       if (App.Toast) App.Toast.show('Тестовые уведомления убраны');
       return;
     }
+  },
+
+  // ---------- ФОН ЭКРАНА ТРЕВОГИ ----------
+
+  /**
+   * Выбрать картинку фона из памяти телефона.
+   * Картинка копируется внутрь приложения (в репозиторий и в сборку она
+   * не попадает — авторские права на кадры из игр).
+   */
+  pickAlarmBackground: function () {
+    if (!App.Native || !App.Native.alarmAvailable) {
+      App.Toast.show('Доступно только в нативном приложении');
+      return;
+    }
+    App.Native.pickAlarmBackground().then(function (res) {
+      if (!res || res.ok !== true) return;      // пользователь отменил выбор
+      App.Toast.show('Фон сохранён');
+      App.Settings.renderAlarmBackgrounds();
+      App.Native.showTestAlarmWindow();
+    });
+  },
+
+  /** Скачать картинку фона по ссылке — если на телефоне её нет. */
+  downloadAlarmBackground: function () {
+    if (!App.Native || !App.Native.alarmAvailable) {
+      App.Toast.show('Доступно только в нативном приложении');
+      return;
+    }
+    const el = document.getElementById('bgUrlInput');
+    const url = el ? String(el.value || '').trim() : '';
+    if (!url) {
+      App.Toast.show('Вставьте ссылку на картинку');
+      return;
+    }
+    if (App.Toast) App.Toast.show('Качаю картинку…');
+    App.Native.addAlarmBackgroundUrl(url).then(function (res) {
+      if (!res || res.ok !== true) {
+        if (App.Toast) App.Toast.show('Не удалось скачать картинку');
+        return;
+      }
+      if (el) el.value = '';
+      App.Toast.show('Фон сохранён');
+      App.Settings.renderAlarmBackgrounds();
+      App.Native.showTestAlarmWindow();
+    });
+  },
+
+  /** Список сохранённых фонов + отметка активного. */
+  renderAlarmBackgrounds: function () {
+    const box = document.getElementById('bgList');
+    if (!box) return;
+    if (!App.Native || !App.Native.alarmAvailable) {
+      box.innerHTML = '<div style="font-size:11px;color:var(--muted);">Доступно только в нативном приложении</div>';
+      return;
+    }
+    App.Native.listAlarmBackgrounds().then(function (items) {
+      if (!items || !items.length) {
+        box.innerHTML = '<div style="font-size:11px;color:var(--muted);">Фонов пока нет. Выберите файл или скачайте по ссылке.</div>';
+        return;
+      }
+      let html = '';
+      items.forEach(function (it) {
+        const id = String(it.id || '').replace(/"/g, '');
+        const nm = String(it.name || it.id || '').replace(/[<>&"]/g, '');
+        html += '<div class="bg-item' + (it.active ? ' active' : '') + '">'
+          + '<span class="bg-item-name" title="' + nm + '">' + nm + '</span>'
+          + '<span class="bg-item-btns">'
+          + (it.active ? '<span class="bg-item-mark">АКТИВЕН</span>'
+                        : '<button class="btn-small" data-bg-use="' + id + '">Включить</button>')
+          + '<button class="btn-small btn-red" data-bg-del="' + id + '">Удалить</button>'
+          + '</span></div>';
+      });
+      box.innerHTML = html;
+    });
+  },
+
+  /** Сделать выбранный фон активным. */
+  setAlarmBackground: function (id) {
+    if (!App.Native || !App.Native.alarmAvailable) return;
+    App.Native.setAlarmBackground(id).then(function () {
+      App.Toast.show('Фон включён');
+      App.Settings.renderAlarmBackgrounds();
+    });
+  },
+
+  /** Удалить фон из списка. */
+  deleteAlarmBackground: function (id) {
+    if (!App.Native || !App.Native.alarmAvailable) return;
+    App.Native.deleteAlarmBackground(id).then(function () {
+      App.Toast.show('Фон удалён');
+      App.Settings.renderAlarmBackgrounds();
+    });
+  },
+
+  /** Убрать активный фон — окно тревоги снова будет тёмным. */
+  clearAlarmBackground: function () {
+    if (!App.Native || !App.Native.alarmAvailable) {
+      App.Toast.show('Доступно только в нативном приложении');
+      return;
+    }
+    App.Native.listAlarmBackgrounds().then(function (items) {
+      const active = (items || []).filter(function (it) { return it.active; })[0];
+      if (!active) {
+        App.Toast.show('Фон и так не выбран');
+        return;
+      }
+      App.Native.deleteAlarmBackground(active.id).then(function () {
+        App.Toast.show('Фон убран');
+        App.Settings.renderAlarmBackgrounds();
+      });
+    });
   },
 
   // MIUI требует «Отображение поверх других приложений», иначе тревога

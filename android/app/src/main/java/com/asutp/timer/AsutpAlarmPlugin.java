@@ -1,5 +1,6 @@
 package com.asutp.timer;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -9,12 +10,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.media.AudioAttributes;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Build;
+import android.provider.OpenableColumns;
 import android.provider.Settings;
 import android.util.Log;
 
+import androidx.activity.result.ActivityResult;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
@@ -23,11 +31,18 @@ import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -806,6 +821,477 @@ public class AsutpAlarmPlugin extends Plugin {
             call.resolve();
         } catch (Exception e) {
             call.reject("Ошибка очистки тестовых уведомлений: " + e.getMessage());
+        }
+    }
+
+    // ---------- ФОН ЭКРАНА ТРЕВОГИ ----------
+
+    /**
+     * Фоны экрана тревоги.
+     *
+     * Картинки живут ТОЛЬКО на устройстве: в репозиторий и в сборку они не
+     * попадают (авторские права на кадры из игр). Пользователь их либо
+     * скачивает по ссылке, либо выбирает файл из памяти телефона.
+     *
+     * Хранилище — device-protected (/data/user_de/0/...): экран тревоги
+     * объявлен directBootAware и показывается ещё ДО разблокировки, когда
+     * обычное хранилище (/data/user/0) зашифровано. Так же устроено и
+     * расписание будильников (см. prefs()).
+     */
+    private static final String BG_DIR = "bg";
+    private static final String BG_ITEMS = "bg_items";
+    private static final String BG_ACTIVE = "bg_active";
+    /** Длинная сторона сохранённой картинки. */
+    private static final int BG_MAX_SIDE = 1080;
+    /** Сторона миниатюры для картинки в уведомлении. */
+    private static final int BG_THUMB_SIDE = 512;
+    private static final int BG_JPEG_QUALITY = 85;
+
+    /** Выбрать картинку фона из памяти телефона (галерея, «Загрузки»). */
+    @PluginMethod
+    public void pickAlarmBackground(PluginCall call) {
+        try {
+            Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            i.addCategory(Intent.CATEGORY_OPENABLE);
+            i.setType("image/*");
+            i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivityForResult(call, i, "onAlarmBackgroundPicked");
+        } catch (Exception e) {
+            call.reject("Ошибка выбора файла: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Скачать картинку фона по ссылке.
+     *
+     * Нужно, когда картинки на телефоне нет: пользователь копирует ссылку из
+     * генератора картинок, приложение само её скачивает и сохраняет.
+     */
+    @PluginMethod
+    public void addAlarmBackgroundUrl(PluginCall call) {
+        final String url = call.getString("url", "").trim();
+        if (url.isEmpty()) {
+            call.reject("Ссылка пустая");
+            return;
+        }
+        final Context ctx = getContext();
+        final String displayName = call.getString("name", "").trim();
+        // Скачивание и декодирование — в отдельном потоке.
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String error = null;
+                String id = "";
+                try {
+                    id = downloadAlarmBackground(ctx, url, displayName);
+                } catch (Throwable t) {
+                    error = t.getMessage();
+                    Log.e(TAG, "скачивание фона: " + t.getMessage());
+                }
+                final String err = error;
+                final String newId = id;
+                final PluginCall c = call;
+                try {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (err != null) {
+                                c.reject("Не удалось скачать картинку: " + err);
+                            } else {
+                                c.resolve(new JSObject().put("ok", true).put("id", newId));
+                            }
+                        }
+                    });
+                } catch (Throwable t) {
+                    Log.e(TAG, "ответ по картинке: " + t.getMessage());
+                }
+            }
+        }).start();
+    }
+
+    /** Список сохранённых фонов: [{id, name, active}]. */
+    @PluginMethod
+    public void listAlarmBackgrounds(PluginCall call) {
+        try {
+            call.resolve(new JSObject().put("items", listAlarmBackgrounds(getContext())));
+        } catch (Exception e) {
+            call.resolve(new JSObject().put("items", new JSArray()));
+        }
+    }
+
+    /** Сделать выбранный фон активным (его показывает окно тревоги). */
+    @PluginMethod
+    public void setAlarmBackground(PluginCall call) {
+        try {
+            Context ctx = getContext();
+            String id = call.getString("id", "");
+            File bf = bgFile(ctx, id);
+            if (id.isEmpty() || bf == null || !bf.exists()) {
+                call.reject("Фон не найден");
+                return;
+            }
+            prefs(ctx).edit().putString(BG_ACTIVE, id).apply();
+            call.resolve(new JSObject().put("ok", true).put("id", id));
+        } catch (Exception e) {
+            call.reject("Ошибка выбора фона: " + e.getMessage());
+        }
+    }
+
+    /** Удалить фон из списка. */
+    @PluginMethod
+    public void deleteAlarmBackground(PluginCall call) {
+        try {
+            Context ctx = getContext();
+            String id = call.getString("id", "");
+            if (id.isEmpty()) {
+                call.reject("Фон не указан");
+                return;
+            }
+            File f = bgFile(ctx, id);
+            if (f != null && f.exists() && !f.delete()) {
+                Log.w(TAG, "не удалось удалить фон: " + f.getAbsolutePath());
+            }
+            List<JSObject> kept = new ArrayList<JSObject>();
+            for (JSObject o : readBgItems(ctx)) {
+                if (!id.equals(o.optString("id", ""))) kept.add(o);
+            }
+            SharedPreferences.Editor ed = prefs(ctx).edit();
+            ed.putString(BG_ITEMS, new JSArray(kept).toString());
+            if (id.equals(prefs(ctx).getString(BG_ACTIVE, ""))) ed.remove(BG_ACTIVE);
+            ed.apply();
+            call.resolve(new JSObject().put("ok", true));
+        } catch (Exception e) {
+            call.reject("Ошибка удаления фона: " + e.getMessage());
+        }
+    }
+
+    /** Результат выбора файла: копируем картинку в device-protected хранилище. */
+    @ActivityCallback
+    private void onAlarmBackgroundPicked(PluginCall call, ActivityResult result) {
+        try {
+            if (result == null || result.getResultCode() != Activity.RESULT_OK
+                    || result.getData() == null || result.getData().getData() == null) {
+                // Пользователь отменил выбор — это не ошибка.
+                call.resolve(new JSObject().put("ok", false));
+                return;
+            }
+            final Context ctx = getContext();
+            final Uri uri = result.getData().getData();
+            String name = "";
+            try {
+                name = queryDisplayName(ctx, uri);
+            } catch (Throwable ignored) { }
+            // Декодирование и запись — в отдельном потоке: картинка из галереи
+            // бывает на 12 Мпикс, блокировать интерфейс нельзя.
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    String error = null;
+                    String id = "";
+                    try {
+                        id = saveAlarmBackground(ctx, uri, name);
+                    } catch (Throwable t) {
+                        error = t.getMessage();
+                        Log.e(TAG, "сохранение фона: " + t.getMessage());
+                    }
+                    final String err = error;
+                    final String newId = id;
+                    final PluginCall c = call;
+                    try {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (err != null) {
+                                    c.reject("Не удалось сохранить картинку: " + err);
+                                } else {
+                                    c.resolve(new JSObject().put("ok", true).put("id", newId));
+                                }
+                            }
+                        });
+                    } catch (Throwable t) {
+                        Log.e(TAG, "ответ по картинке: " + t.getMessage());
+                    }
+                }
+            }).start();
+        } catch (Exception e) {
+            call.reject("Ошибка выбора файла: " + e.getMessage());
+        }
+    }
+
+    /** Папка с фонами — device-protected (доступна и до разблокировки). */
+    static File alarmBgDir(Context ctx) {
+        try {
+            Context de = ctx.createDeviceProtectedStorageContext();
+            if (de == null) return null;
+            File dir = new File(de.getFilesDir(), BG_DIR);
+            if (!dir.exists()) dir.mkdirs();
+            return dir;
+        } catch (Throwable t) {
+            Log.w(TAG, "DE-хранилище недоступно: " + t.getMessage());
+            return null;
+        }
+    }
+
+    static File bgFile(Context ctx, String id) {
+        File dir = alarmBgDir(ctx);
+        if (dir == null || id == null || id.isEmpty()) return null;
+        // Имя файла — своё, из цифр и точки: никаких «../» из ввода пользователя
+        return new File(dir, id.replaceAll("[^A-Za-z0-9._-]", "_"));
+    }
+
+    /** Активный фон (id) или пустая строка. */
+    static String activeAlarmBgId(Context ctx) {
+        try {
+            return prefs(ctx).getString(BG_ACTIVE, "");
+        } catch (Throwable t) {
+            return "";
+        }
+    }
+
+    /**
+     * Миниатюра активного фона — для большой картинки в уведомлении.
+     *
+     * Декодируется мелко (512 px), чтобы не тормозить показ уведомления.
+     * Возвращает null, если фона нет или он не читается — уведомление
+     * покажется и без картинки.
+     */
+    static Bitmap activeBgThumbnail(Context ctx) {
+        try {
+            String id = activeAlarmBgId(ctx);
+            if (id.isEmpty()) return null;
+            File f = bgFile(ctx, id);
+            if (f == null || !f.exists()) return null;
+            BitmapFactory.Options probe = new BitmapFactory.Options();
+            probe.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(f.getAbsolutePath(), probe);
+            int sample = 1;
+            int longSide = Math.max(probe.outWidth, probe.outHeight);
+            while (longSide / sample > BG_THUMB_SIDE) sample *= 2;
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inSampleSize = sample;
+            return BitmapFactory.decodeFile(f.getAbsolutePath(), opts);
+        } catch (Throwable t) {
+            Log.w(TAG, "миниатюра фона: " + t.getMessage());
+            return null;
+        }
+    }
+
+    /** Список сохранённых фонов для JS. */
+    private static JSArray listAlarmBackgrounds(Context ctx) {
+        List<JSObject> out = new ArrayList<JSObject>();
+        String active = activeAlarmBgId(ctx);
+        for (JSObject o : readBgItems(ctx)) {
+            String id = o.optString("id", "");
+            if (id.isEmpty()) continue;
+            JSObject item = new JSObject();
+            item.put("id", id);
+            item.put("name", o.optString("name", id));
+            item.put("active", id.equals(active));
+            out.add(item);
+        }
+        return new JSArray(out);
+    }
+
+    /**
+     * Сохранённые фоны (список) — из DE-настроек.
+     *
+     * Список хранится строкой JSON. Разбор обёрнут в try/catch: битые настройки
+     * не должны ронять приложение — просто список останется пустым.
+     */
+    private static List<JSObject> readBgItems(Context ctx) {
+        List<JSObject> out = new ArrayList<JSObject>();
+        try {
+            String raw = prefs(ctx).getString(BG_ITEMS, "[]");
+            JSONArray arr = new JSONArray(raw);
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.optJSONObject(i);
+                if (o == null) continue;
+                JSObject item = new JSObject();
+                item.put("id", o.optString("id", ""));
+                item.put("name", o.optString("name", ""));
+                out.add(item);
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "список фонов: " + t.getMessage());
+        }
+        return out;
+    }
+
+    /** Запомнить фон в списке и сделать его активным. */
+    private static String rememberAlarmBg(Context ctx, String id, String name) {
+        List<JSObject> out = new ArrayList<JSObject>();
+        JSObject head = new JSObject();
+        head.put("id", id);
+        head.put("name", (name == null || name.isEmpty()) ? id : name);
+        out.add(head);
+        for (JSObject o : readBgItems(ctx)) {
+            String old = o.optString("id", "");
+            if (!old.equals(id)) out.add(o);
+        }
+        SharedPreferences.Editor ed = prefs(ctx).edit();
+        ed.putString(BG_ITEMS, new JSArray(out).toString());
+        ed.putString(BG_ACTIVE, id);
+        ed.apply();
+        return id;
+    }
+
+    /** Скачать картинку по ссылке и сохранить как фон. */
+    private static String downloadAlarmBackground(Context ctx, String url, String name)
+            throws Exception {
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+        try {
+            conn.setConnectTimeout(20000);
+            conn.setReadTimeout(30000);
+            conn.setInstanceFollowRedirects(true);
+            conn.setRequestProperty("User-Agent", "ASUTP-Timer");
+            int code = conn.getResponseCode();
+            if (code < 200 || code >= 300) {
+                throw new IllegalStateException("сервер ответил " + code);
+            }
+            InputStream in = conn.getInputStream();
+            try {
+                // Сначала в память: картинка нужна целиком, чтобы ужать
+                byte[] raw = readAll(in);
+                if (raw == null || raw.length < 1024) {
+                    throw new IllegalStateException("пустой ответ");
+                }
+                String fileName = saveBgBytes(ctx, raw, name);
+                return rememberAlarmBg(ctx, fileName, name);
+            } finally {
+                try {
+                    in.close();
+                } catch (Exception ignored) { }
+            }
+        } finally {
+            try {
+                conn.disconnect();
+            } catch (Exception ignored) { }
+        }
+    }
+
+    private static byte[] readAll(InputStream in) throws Exception {
+        java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+        byte[] buf = new byte[16384];
+        int n;
+        int total = 0;
+        while ((n = in.read(buf)) > 0) {
+            total += n;
+            if (total > 40 * 1024 * 1024) {
+                throw new IllegalStateException("файл слишком большой");
+            }
+            bos.write(buf, 0, n);
+        }
+        return bos.toByteArray();
+    }
+
+    /** Имя файла выбранного документа — чтобы показать его в списке. */
+    private static String queryDisplayName(Context ctx, Uri uri) {
+        try {
+            Cursor c = ctx.getContentResolver().query(uri, null, null, null, null);
+            if (c != null) {
+                try {
+                    int idx = c.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    if (idx >= 0 && c.moveToFirst()) {
+                        String n = c.getString(idx);
+                        if (n != null && !n.isEmpty()) return n;
+                    }
+                } finally {
+                    c.close();
+                }
+            }
+        } catch (Throwable ignored) { }
+        return "";
+    }
+
+    /**
+     * Скопировать выбранный файл в фон: ужимаем до ~1080 px по длинной
+     * стороне, поворачиваем по EXIF и сохраняем в JPEG.
+     *
+     * Ужимать обязательно: фото из галереи (12 Мпикс) в распакованном виде —
+     * это ~48 МБ, и окно тревоги, открываясь поверх блокировки, такое не
+     * переживёт (OOM).
+     */
+    private static String saveAlarmBackground(Context ctx, Uri uri, String name) throws Exception {
+        InputStream in = ctx.getContentResolver().openInputStream(uri);
+        if (in == null) throw new IllegalStateException("не удалось открыть файл");
+        byte[] raw;
+        try {
+            raw = readAll(in);
+        } finally {
+            try {
+                in.close();
+            } catch (Exception ignored) { }
+        }
+        if (raw == null || raw.length < 1024) throw new IllegalStateException("файл пустой");
+        String fileName = saveBgBytes(ctx, raw, name);
+        return rememberAlarmBg(ctx, fileName, name);
+    }
+
+    /**
+     * Сохранить картинку из байтов: ужать, повернуть по EXIF, записать в JPEG.
+     * Возвращает имя файла.
+     */
+    private static String saveBgBytes(Context ctx, byte[] raw, String name) throws Exception {
+        Bitmap bmp = null;
+        try {
+            BitmapFactory.Options probe = new BitmapFactory.Options();
+            probe.inJustDecodeBounds = true;
+            BitmapFactory.decodeByteArray(raw, 0, raw.length, probe);
+            if (probe.outWidth <= 0 || probe.outHeight <= 0) {
+                throw new IllegalStateException("файл не читается как картинка");
+            }
+            int sample = 1;
+            int longSide = Math.max(probe.outWidth, probe.outHeight);
+            while (longSide / sample > BG_MAX_SIDE) sample *= 2;
+
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inSampleSize = sample;
+            opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            bmp = BitmapFactory.decodeByteArray(raw, 0, raw.length, opts);
+            if (bmp == null) throw new IllegalStateException("файл не читается как картинка");
+
+            // Поворот по EXIF — фотографии с телефона часто лежат боком
+            bmp = applyExifRotation(raw, bmp);
+
+            File dir = alarmBgDir(ctx);
+            if (dir == null) throw new IllegalStateException("нет доступа к хранилищу");
+            String fileName = "bg_" + System.currentTimeMillis() + ".jpg";
+            File out = new File(dir, fileName);
+            FileOutputStream fos = new FileOutputStream(out);
+            try {
+                bmp.compress(Bitmap.CompressFormat.JPEG, BG_JPEG_QUALITY, fos);
+                fos.flush();
+            } finally {
+                try {
+                    fos.close();
+                } catch (Exception ignored) { }
+            }
+            return fileName;
+        } finally {
+            if (bmp != null && !bmp.isRecycled()) bmp.recycle();
+        }
+    }
+
+    /** Повернуть картинку по метке EXIF (если она есть). */
+    private static Bitmap applyExifRotation(byte[] raw, Bitmap bmp) {
+        try {
+            ExifInterface exif = new ExifInterface(new java.io.ByteArrayInputStream(raw));
+            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION,
+                    ExifInterface.ORIENTATION_NORMAL);
+            int degrees = 0;
+            if (orientation == ExifInterface.ORIENTATION_ROTATE_90) degrees = 90;
+            else if (orientation == ExifInterface.ORIENTATION_ROTATE_180) degrees = 180;
+            else if (orientation == ExifInterface.ORIENTATION_ROTATE_270) degrees = 270;
+            if (degrees == 0) return bmp;
+            Matrix m = new Matrix();
+            m.postRotate(degrees);
+            Bitmap rotated = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(),
+                    m, true);
+            if (rotated != bmp && !bmp.isRecycled()) bmp.recycle();
+            return rotated;
+        } catch (Throwable t) {
+            Log.w(TAG, "EXIF: " + t.getMessage());
+            return bmp;
         }
     }
 
