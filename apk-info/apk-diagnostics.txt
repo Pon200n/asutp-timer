@@ -1,40 +1,25 @@
 ### Сборка
-номер:    #87 (номер коммита в истории)
-прогон CI: 72
-коммит:   ebbeb9aab3528a16e4bc5bd514a7f9adbfa8c66c
-собрано:  2026-11-26T12:50:28Z
+номер:    #88 (номер коммита в истории)
+прогон CI: 73
+коммит:   f1097c26db32f93e0f978189feece08b8d506066
+собрано:  2026-11-26T13:09:25Z
 релиз:    https://github.com/Pon200n/asutp-timer/releases/tag/latest
 
 ### Хвост лога сборки gradle
-> Task :app:mergeDebugAssets
-> Task :capacitor-community-text-to-speech:bundleLibRuntimeToJarDebug
-> Task :capawesome-team-capacitor-android-foreground-service:bundleLibRuntimeToJarDebug
-> Task :app:compressDebugAssets
-> Task :capacitor-android:bundleLibRuntimeToJarDebug
-> Task :capacitor-cordova-android-plugins:bundleLibRuntimeToJarDebug
-> Task :app:desugarDebugFileDependencies
-> Task :app:processDebugJavaRes NO-SOURCE
-> Task :capacitor-android:processDebugJavaRes NO-SOURCE
-> Task :capacitor-community-text-to-speech:processDebugJavaRes NO-SOURCE
-> Task :capacitor-cordova-android-plugins:processDebugJavaRes NO-SOURCE
-> Task :capawesome-team-capacitor-android-foreground-service:processDebugJavaRes NO-SOURCE
-> Task :capacitor-community-text-to-speech:bundleLibRuntimeToDirDebug
-> Task :app:checkDebugDuplicateClasses
-> Task :capacitor-local-notifications:compileDebugKotlin
-> Task :capacitor-local-notifications:compileDebugJavaWithJavac NO-SOURCE
-> Task :capacitor-local-notifications:bundleLibRuntimeToJarDebug
-> Task :capacitor-local-notifications:bundleLibCompileToJarDebug
-> Task :capacitor-local-notifications:processDebugJavaRes
-
-> Task :app:compileDebugJavaWithJavac FAILED
+  location: class AsutpAlarmActivity
 /home/runner/work/asutp-timer/asutp-timer/android/app/src/main/java/com/asutp/timer/AsutpAlarmActivity.java:391: error: cannot find symbol
-            d.setShader(shader);
-             ^
-  symbol:   method setShader(BitmapShader)
-  location: variable d of type GradientDrawable
+            android.graphics.drawable.RepeatDrawable stripes =
+                                     ^
+  symbol:   class RepeatDrawable
+  location: package android.graphics.drawable
+/home/runner/work/asutp-timer/asutp-timer/android/app/src/main/java/com/asutp/timer/AsutpAlarmActivity.java:392: error: cannot find symbol
+                    new android.graphics.drawable.RepeatDrawable(tile, null, -1, 0f, 0f);
+                                                 ^
+  symbol:   class RepeatDrawable
+  location: package android.graphics.drawable
 Note: Some input files use or override a deprecated API.
 Note: Recompile with -Xlint:deprecation for details.
-1 error
+4 errors
 
 > Task :app:mergeExtDexDebug
 
@@ -46,13 +31,28 @@ FAILURE: Build failed with an exception.
 Execution failed for task ':app:compileDebugJavaWithJavac'.
 > Compilation failed; see the compiler output below.
   Note: Recompile with -Xlint:deprecation for details.
-  Note: Some input files use or override a deprecated API.
+  /home/runner/work/asutp-timer/asutp-timer/android/app/src/main/java/com/asutp/timer/AsutpAlarmActivity.java:390: error: cannot find symbol
+              BitmapDrawable tile = new BitmapDrawable(getResources(), bmp);
+              ^
+    symbol:   class BitmapDrawable
+    location: class AsutpAlarmActivity
+  /home/runner/work/asutp-timer/asutp-timer/android/app/src/main/java/com/asutp/timer/AsutpAlarmActivity.java:390: error: cannot find symbol
+              BitmapDrawable tile = new BitmapDrawable(getResources(), bmp);
+                                        ^
+    symbol:   class BitmapDrawable
+    location: class AsutpAlarmActivity
   /home/runner/work/asutp-timer/asutp-timer/android/app/src/main/java/com/asutp/timer/AsutpAlarmActivity.java:391: error: cannot find symbol
-              d.setShader(shader);
-               ^
-    symbol:   method setShader(BitmapShader)
-    location: variable d of type GradientDrawable
-  1 error
+              android.graphics.drawable.RepeatDrawable stripes =
+                                       ^
+    symbol:   class RepeatDrawable
+    location: package android.graphics.drawable
+  /home/runner/work/asutp-timer/asutp-timer/android/app/src/main/java/com/asutp/timer/AsutpAlarmActivity.java:392: error: cannot find symbol
+                      new android.graphics.drawable.RepeatDrawable(tile, null, -1, 0f, 0f);
+                                                   ^
+    symbol:   class RepeatDrawable
+    location: package android.graphics.drawable
+  Note: Some input files use or override a deprecated API.
+  4 errors
 
 * Try:
 > Check your code and dependencies to fix the compilation error(s)
@@ -64,8 +64,8 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD FAILED in 1m 44s
-105 actionable tasks: 105 executed
+BUILD FAILED in 1m 16s
+104 actionable tasks: 104 executed
 
 ### Файл
 ls: cannot access 'android/app/build/outputs/apk/debug/app-debug.apk': No such file or directory
