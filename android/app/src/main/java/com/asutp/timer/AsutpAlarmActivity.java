@@ -163,7 +163,7 @@ public class AsutpAlarmActivity extends Activity {
         View veil = new View(this);
         veil.setBackground(new GradientDrawable(
                 GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{0x00000000, 0xCC08080C, 0xF208080C}, null));
+                new int[]{0x00000000, 0xCC08080C, 0xF208080C}));
         root.addView(veil, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
@@ -204,7 +204,7 @@ public class AsutpAlarmActivity extends Activity {
         titleView.setTextColor(C_TEXT);
         titleView.setTextSize(26);
         titleView.setGravity(Gravity.CENTER);
-        titleView.setLineSpacing(0, 1.15);
+        titleView.setLineSpacing(0f, 1.15f);
         LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         tlp.bottomMargin = dp(10);
@@ -358,7 +358,7 @@ public class AsutpAlarmActivity extends Activity {
     private GradientDrawable thumbBackground(int accent) {
         GradientDrawable d = new GradientDrawable(
                 GradientDrawable.Orientation.TL_BR,
-                new int[]{0xFF00F0FF, 0xFF05FFA1}, null);
+                new int[]{0xFF00F0FF, 0xFF05FFA1});
         d.setCornerRadius(dp(2));
         return d;
     }
@@ -367,7 +367,7 @@ public class AsutpAlarmActivity extends Activity {
     private GradientDrawable hatchBackground(int alpha) {
         GradientDrawable d = new GradientDrawable(
                 GradientDrawable.Orientation.TL_BR,
-                new int[]{0x00000000, alpha}, null);
+                new int[]{0x00000000, alpha});
         d.setStroke(dp(1), 0x5500F0FF);
         return d;
     }
