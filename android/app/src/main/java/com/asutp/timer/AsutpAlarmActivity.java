@@ -190,6 +190,7 @@ public class AsutpAlarmActivity extends Activity {
         content.setPadding(dp(26), dp(36), dp(26), Math.max(dp(36), screenH / 10));
         FrameLayout.LayoutParams clp = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        clp.bottomMargin = dp(80);      // как в прототипе: отступ от низа экрана
         frame.addView(content, clp);
 
         // Бейдж
@@ -374,9 +375,9 @@ public class AsutpAlarmActivity extends Activity {
      * как .swipe-box в веб-версии (ярче и шире, чем раньше).
      */
     private android.graphics.drawable.Drawable stripeBackground() {
-        GradientDrawable d = new GradientDrawable();
-        d.setColor(0xFF06060A);
-        d.setStroke(dp(1), 0x6600F0FF);
+        GradientDrawable base = new GradientDrawable();
+        base.setColor(0xFF06060A);
+        base.setStroke(dp(1), 0x6600F0FF);
         try {
             int size = 32;
             Bitmap bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
@@ -386,13 +387,15 @@ public class AsutpAlarmActivity extends Activity {
             paint.setStrokeWidth(5f);
             canvas.drawLine(-size, size, size, -size, paint);
             canvas.drawLine(0, size * 2, size * 2, 0, paint);
-            BitmapShader shader =
-                    new BitmapShader(bmp, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
-            d.setShader(shader);
+            BitmapDrawable tile = new BitmapDrawable(getResources(), bmp);
+            android.graphics.drawable.RepeatDrawable stripes =
+                    new android.graphics.drawable.RepeatDrawable(tile, null, -1, 0f, 0f);
+            return new android.graphics.drawable.LayerDrawable(
+                    new android.graphics.drawable.Drawable[]{base, stripes});
         } catch (Throwable t) {
             Log.w(TAG, "штриховка: " + t.getMessage());
+            return base;
         }
-        return d;
     }
 
     /** Мягкое пульсирующее свечение по краям — аналог alarmFlash. */

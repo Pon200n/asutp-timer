@@ -24,3 +24,19 @@
 | папка | что | куда переносим |
 |---|---|---|
 | `alarm-window/` | экран оповещения тревоги (нативный) | `android/app/src/main/java/com/asutp/timer/AsutpAlarmActivity.java` |
+
+## Картинки
+
+В `alarm-window/` лежат варианты фона (картинки **не попадают в репозиторий** —
+они в `.gitignore` ✓):
+
+| файл | что |
+|---|---|
+| `rebecca.jpg` | основной фон (подхватывается автоматически ✓) |
+| `variant-rebecca.jpg` | альтернатива |
+| `variant-rebecca-fire.jpg` | альтернатива |
+| `variant-door.jpg` | альтернатива |
+
+Чтобы поменять фон: переименуйте нужный файл в `rebecca.jpg` ✓
+(в нативном приложении картинка лежит там же — `android/app/src/main/assets/rebecca.jpg` ✓).
+

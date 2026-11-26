@@ -335,6 +335,8 @@ App.Alerts = {
     if (!data) return;
     const extra = data.extra || {};
     const id = (extra.alertId !== undefined && extra.alertId !== null) ? extra.alertId : data.id;
+    console.log('[Alerts] подтверждение от нативной части id=' + id
+      + ' показываем=' + this.isShowing + ' текущая=' + (this.currentAlert ? this.currentAlert.id : 'нет'));
     if (id !== undefined && id !== null) this.handled[id] = true;
 
     if (this.isShowing && this.currentAlert) {
@@ -362,6 +364,8 @@ App.Alerts = {
   },
 
   showOverlay: function (a) {
+    console.log('[Alerts] показ тревоги id=' + a.id + ' spokenNatively=' + !!a.spokenNatively
+      + ' очередь=' + this.queue.length);
     const ov = document.getElementById('alarmOverlay');
     if (!ov) return;
     const badge = document.getElementById('alarmBadge');
@@ -396,6 +400,8 @@ App.Alerts = {
   },
 
   acknowledge: function () {
+    console.log('[Alerts] подтверждение, осталось в очереди: ' + this.queue.length
+      + ' циклЗвука=' + !!this.alarmLoopTimer);
     if (this.alarmLoopTimer) {
       clearInterval(this.alarmLoopTimer);
       this.alarmLoopTimer = null;
