@@ -46,6 +46,9 @@ public class AsutpAlarmActivity extends Activity {
     /** Фон окна (необязательный): кладётся в assets/, при отсутствии — тёмный фон. */
     private static final String BG_ASSET = "rebecca.jpg";
 
+    /** Показать окно поверх всего (тест из настроек), даже если телефон разблокирован. */
+    public static final String EXTRA_FORCE_SHOW = "asutp_force_show";
+
     // Палитра — как в www/css/styles.css (:root)
     private static final int C_BG = 0xFF08080C;
     private static final int C_RED = 0xFFFF003C;
@@ -421,9 +424,22 @@ public class AsutpAlarmActivity extends Activity {
 
     // ---------- ПЕРЕХОД В ПРИЛОЖЕНИЕ И ПОДТВЕРЖДЕНИЕ ----------
 
+    /** Тестовый запуск из настроек: показываем окно, даже если телефон разблокирован. */
+    private boolean forceShow() {
+        try {
+            return getIntent() != null
+                    && getIntent().getBooleanExtra(EXTRA_FORCE_SHOW, false);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     /** Открыть обычное приложение. false — остаёмся на экране тревоги. */
     private boolean forwardToApp() {
         if (forwarded) return true;
+        // Тестовый запуск из настроек: окно показываем поверх всего,
+        // не перенаправляя в приложение.
+        if (forceShow()) return false;
         // Если экран заблокирован — показываем экран тревоги, а не приложение.
         // Проверять надо именно экран: после перезагрузки MIUI может считать
         // пользователя «разблокированным» (сессия жива), пока экран заблокирован.

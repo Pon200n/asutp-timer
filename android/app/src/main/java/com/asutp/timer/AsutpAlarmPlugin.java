@@ -786,6 +786,9 @@ public class AsutpAlarmPlugin extends Plugin {
                     | Intent.FLAG_ACTIVITY_SINGLE_TOP
                     | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             i.putExtra(AsutpAlarmReceiver.EXTRA_PAYLOAD, payload);
+            // Показать поверх всего, даже если телефон разблокирован —
+            // иначе окно сразу перенаправит в приложение.
+            i.putExtra(AsutpAlarmActivity.EXTRA_FORCE_SHOW, true);
             ctx.startActivity(i);
             call.resolve();
         } catch (Exception e) {
