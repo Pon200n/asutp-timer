@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ASUTP — экран тревоги (прототип)</title>
+<style>
+  :root {
+    --bg:      #08080C;
+    --red:     #FF003C;
+    --cyan:    #00F0FF;
+    --yellow:  #FCEE09;
+    --text:    #E2E8F0;
+    --muted:   #64748B;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+    overflow: hidden;
+  }
+
+  /* ---------- сцена ---------- */
+  .stage {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 36px 26px 28px;
+    overflow: hidden;
+  }
+
+  /* Фон-картинка (Рёбекка из 2077). Пока файла нет — тёмный фон с сеткой.
+     Положим сюда rebecca.jpg рядом с этим файлом — подхватится автоматически. */
+  .bg {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,240,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,240,255,.03) 1px, transparent 1px),
+      radial-gradient(120% 90% at 50% 20%, #14142A 0%, #08080C 70%);
+    background-size: 40px 40px, 40px 40px, 100% 100%;
+    background-position: center;
+  }
+  .bg.has-image {
+    background-image: url('rebecca.jpg');
+    background-size: cover;
+  }
+
+  /* Вуаль поверх картинки — чтобы текст всегда читался */
+  .veil {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg,
+      rgba(8,8,12,0) 0%, rgba(8,8,12,.80) 55%, rgba(8,8,12,.95) 100%);
+  }
+
+  /* Рамка и свечение */
+  .frame {
+    position: absolute; inset: 0;
+    border: 4px solid var(--red);
+    box-shadow: inset 0 0 40px rgba(255,0,60,.25);
+    animation: flash 2s ease-in-out infinite;
+  }
+  @keyframes flash {
+    0%, 100% { box-shadow: inset 0 0 40px rgba(255,0,60,.25); }
+    50%      { box-shadow: inset 0 0 70px rgba(255,0,60,.50); }
+  }
+
+  /* Сканлайн */
+  .scan {
+    position: absolute; left: 0; right: 0; height: 2px;
+    background: rgba(0,240,255,.33);
+    animation: scan 7s linear infinite;
+  }
+  @keyframes scan {
+    from { transform: translateY(-4px); }
+    to   { transform: translateY(100vh); }
+  }
+
+  /* ---------- содержимое ---------- */
+  .content {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .badge {
+    background: var(--red);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: .22em;
+    padding: 6px 14px;
+    margin-bottom: 18px;
+  }
+
+  .title {
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.15;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .sub {
+    font-family: 'Cascadia Mono', Consolas, monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .2em;
+    color: var(--cyan);
+    margin-bottom: 8px;
+  }
+
+  /* ---------- ползунок подтверждения ---------- */
+  .swipe {
+    position: relative;
+    width: 100%;
+    height: 64px;
+    margin-top: 14px;
+    border: 1px solid rgba(0,240,255,.33);
+    background:
+      repeating-linear-gradient(45deg,
+        rgba(0,240,255,.05) 0, rgba(0,240,255,.05) 2px,
+        transparent 2px, transparent 8px),
+      rgba(6,6,10,.85);
+    overflow: hidden;
+    touch-action: pan-y;
+    user-select: none;
+  }
+  .swipe-fill {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 0;
+    background: rgba(255,0,60,.27);
+  }
+  .swipe-hint {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cascadia Mono', Consolas, monospace;
+    font-size: 13px; font-weight: 700; letter-spacing: .18em;
+    color: var(--muted);
+  }
+  .swipe-thumb {
+    position: absolute; left: 4px; top: 0; bottom: 0;
+    width: 48px;
+    background: linear-gradient(135deg, #00F0FF, #05FFA1);
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="bg" id="bg"></div>
+  <div class="veil"></div>
+  <div class="frame"></div>
+  <div class="scan"></div>
+
+  <div class="content">
+    <div class="badge" id="badge">ВНИМАНИЕ // ОПЕРАЦИЯ</div>
+    <div class="title" id="title">ЩУЭ АСУТП СААТ-4: Операция 4</div>
+    <div class="sub" id="sub">ОПОВЕЩЕНИЕ О СМЕНЕ</div>
+
+    <div class="swipe" id="swipe">
+      <div class="swipe-fill" id="fill"></div>
+      <div class="swipe-hint">ПОТЯНИ ▸ ПРИНЯТЬ</div>
+      <div class="swipe-thumb" id="thumb"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Фон-картинка: если рядом лежит rebecca.jpg — подхватится
+  const bg = document.getElementById('bg');
+  const img = new Image();
+  img.onload = () => bg.classList.add('has-image');
+  img.src = 'rebecca.jpg';
+
+  // ---- ползунок подтверждения ----
+  const swipe = document.getElementById('swipe');
+  const fill  = document.getElementById('fill');
+  const thumb = document.getElementById('thumb');
+
+  let dragging = false, startX = 0, baseX = 0;
+
+  const maxX = () => Math.max(10, swipe.clientWidth - thumb.offsetWidth - 8);
+
+  function setFill(px) { fill.style.width = px + 'px'; }
+
+  function onDown(x) {
+    dragging = true;
+    startX = x;
+    baseX = thumb.offsetLeft;
+    thumb.style.transition = 'none';
+  }
+  function onMove(x) {
+    if (!dragging) return;
+    let p = baseX + (x - startX);
+    if (p < 4) p = 4;
+    if (p > maxX()) p = maxX();
+    thumb.style.left = p + 'px';
+    setFill(p + thumb.offsetWidth / 2);
+  }
+  function onUp() {
+    if (!dragging) return;
+    dragging = false;
+    if (thumb.offsetLeft >= maxX() * 0.85) {
+      // подтверждено
+      document.getElementById('title').textContent = 'ПОДТВЕРЖДЕНО';
+      document.getElementById('badge').style.background = 'var(--cyan)';
+      document.getElementById('badge').textContent = 'ПРИНЯТО';
+      fill.style.background = 'rgba(5,255,161,.35)';
+      setFill(swipe.clientWidth);
+      thumb.style.left = (maxX() + 4) + 'px';
+    } else {
+      // недотянули — откат
+      thumb.style.transition = 'left .2s ease-out';
+      thumb.style.left = '4px';
+      setTimeout(() => setFill(0), 200);
+    }
+  }
+
+  swipe.addEventListener('mousedown', e => { onDown(e.clientX); e.preventDefault(); });
+  window.addEventListener('mousemove', e => onMove(e.clientX));
+  window.addEventListener('mouseup', onUp);
+
+  swipe.addEventListener('touchstart', e => { onDown(e.touches[0].clientX); e.preventDefault(); }, { passive: false });
+  window.addEventListener('touchmove', e => { onMove(e.touches[0].clientX); }, { passive: true });
+  window.addEventListener('touchend', onUp);
+</script>
+
+</body>
+</html>
